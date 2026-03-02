@@ -1,0 +1,30 @@
+{
+    "compilerOptions": {
+        "target": "ES2022",                         // Modern JS output
+        "module": "ESNext",                         // Keep ESM imports/exports
+        "declaration": true,                        // Generate .d.ts type files
+        "declarationMap": true,                     // Maps for type debugging
+        "outDir": "dist",                           // Output folder
+        "rootDir": "src",                           // Source folder
+        "strict": true,                             // Enable all strict type checks
+        "noImplicitAny": true,
+        "strictNullChecks": true,
+        "strictFunctionTypes": true,
+        "strictBindCallApply": true,
+        "noImplicitThis": true,
+        "alwaysStrict": true,
+        "esModuleInterop": true,                    // Compatibility with require/import
+        "moduleResolution": "node10",               // Node-style module resolution
+        "resolveJsonModule": true,                  // Allow importing JSON files
+        "forceConsistentCasingInFileNames": true,   // Prevent case-sensitive import issues
+        "skipLibCheck": true                        // Skip type-checking of dependencies
+    },
+    "include": [
+        "src"
+    ], // Compile everything under src
+    "exclude": [
+        "node_modules",
+        "dist",
+        "**/*.test.ts"
+    ] // Exclude build and test files
+}
