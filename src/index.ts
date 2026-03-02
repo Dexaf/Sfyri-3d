@@ -1,5 +1,5 @@
 import { Camera, Scene, WebGLRenderer, WebGLRendererParameters } from "three";
-import Sfyri3DInstance from "./types/classes/sfyri-3d-instance.class";
+import Sfyri3DInstance from "./types/classes/sfyri3d-instance.class";
 
 /**
  * @throws This method can throw error.
