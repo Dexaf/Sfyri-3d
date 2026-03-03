@@ -307,6 +307,5 @@ export default class Sfyri3DInstance {
         this._preRenderingLogicMethods.forEach(method => method(this));
     }
     //!SECTION - RENDER STEP LIFECYCLE METHODS
-
     //!SECTION - PRIVATE METHODS
 }

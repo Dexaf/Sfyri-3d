@@ -3,3 +3,5 @@
     - fps manual handling with dynamic cap modification
 - instant garbage collection + control on soft deletes
 - tests
+- types props for entities
+- process pipelines (crud like operations)
