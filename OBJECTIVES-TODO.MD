@@ -1,4 +1,3 @@
-- global variables
 - global process pipelines (crud like operations)
 - faster and easy multi platform (mobile and pc) controller creation (events like pointers and keyboard)
 - API to handle loading (async and blocking)
