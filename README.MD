@@ -20,6 +20,7 @@ a replacement for threeJs but only a tool to make development faster and make th
     - __FIX__: fixed something in the repository.
     - __DOCS__: added comments, doc files or renamed variables to be more explicative.
     - __RFCT__: refactored the structure of code.
+    - __RNM__: renamed files.
     - __TEST__: added tests to the repo.
 - I hope i'll be able to maintain what i said in the previous point.
 - Use early return guard instead of big nested if.
