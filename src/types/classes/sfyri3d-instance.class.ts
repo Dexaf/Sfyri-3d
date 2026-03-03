@@ -1,6 +1,6 @@
 import { Scene, Camera, WebGLRenderer, Timer, PerspectiveCamera, OrthographicCamera, Material, Object3D, Light, Mesh, DirectionalLight, PointLight, SpotLight } from "three";
 import ISfyri3DAsset, { Sfyri3DAssetTypes } from "../interfaces/sfyri3d-asset.interface";
-import { isLightAsset as isSfyri3DLightAsset, isObject3DAsset as isSfyri3DObject3DAsset } from "../../utils/type-guards";
+import { isSfyri3DLightAsset, isSfyri3DObject3DAsset } from "../../utils/type-guards";
 
 /**
  * Entry point of the Sfyri 3D Framework handling system
@@ -24,7 +24,6 @@ export default class Sfyri3DInstance {
     //!SECTION - THREEJS PROPS
 
     //SECTION - SFYRI3D PROPS
-
     //SECTION - PROPS FOR ANIMATION LOOP
     /** the timer will be created in the startRender method */
     private _timer!: Timer;
@@ -59,11 +58,13 @@ export default class Sfyri3DInstance {
 
     //SECTION - ASSETS PROPS
     public materials: Map<string, Material>[] = [];
+
     //NOTE - the setters are handled in the private methods 
     private _objects3D: Map<string, ISfyri3DAsset<Object3D>> = new Map();
     private _lights: Map<string, ISfyri3DAsset<Light>> = new Map();
+    private _preRenderingAnimationMethods: Set<((sfyri3DInstanceRef: Sfyri3DInstance) => void)> = new Set();
+    private _preRenderingLogicMethods: Set<((sfyri3DInstanceRef: Sfyri3DInstance) => void)> = new Set();
     //!SECTION - ASSETS PROPS
-
     //!SECTION - SFYRI3D PROPS
 
     //CONSTRUCTOR
@@ -106,7 +107,6 @@ export default class Sfyri3DInstance {
         this._timer.connect(this.renderer.domElement.ownerDocument);
         this.renderNextStep();
         //!SECTION - START ANIMATION LOOP
-        //TODO handle three js assets presence
     }
 
     /**
@@ -117,9 +117,7 @@ export default class Sfyri3DInstance {
         if (this._animationFrameId) {
             cancelAnimationFrame(this._animationFrameId);
             this._animationFrameId = null;
-        } else {
-            throw new Error(`SFYRI - Sfyri3DInstance stopRender\nThis instance is not rendering.`);
-        }
+        } else throw new Error(`SFYRI - Sfyri3DInstance stopRender\nThis instance is not rendering.`);
     }
 
     /**
@@ -172,8 +170,17 @@ export default class Sfyri3DInstance {
         else if (isSfyri3DObject3DAsset(asset)) {
             if (this._objects3D.has(asset.name)) throw new Error(`SFYRI - Sfyri3DInstance addAsset\n${asset.name} already exists in the objects3Ds asset's map.`);
             this._objects3D.set(asset.name, asset);
-        } else throw new Error(`SFYRI - Sfyri3DInstance addAsset\n${(asset as any).name ?? "ND"} doesn't extends either object3D or light.`);
+        }
+        //ERROR
+        else throw new Error(`SFYRI - Sfyri3DInstance addAsset\n${(asset as any).name ?? "ND"} doesn't extends either object3D or light.`);
+
         this.scene.add(asset.object);
+
+        //PIPELINE METHODS
+        if (asset.preRenderingAnimationMethod)
+            this._preRenderingAnimationMethods.add(asset.preRenderingAnimationMethod);
+        if (asset.preRenderingLogicMethod)
+            this._preRenderingLogicMethods.add(asset.preRenderingLogicMethod);
     }
 
     /**
@@ -197,6 +204,12 @@ export default class Sfyri3DInstance {
                         }
                     }
                     this.scene.remove(light.object);
+
+                    //REMOVE PIPELINE METHODS
+                    if (light.preRenderingAnimationMethod)
+                        this._preRenderingAnimationMethods.delete(light.preRenderingAnimationMethod);
+                    if (light.preRenderingLogicMethod)
+                        this._preRenderingLogicMethods.delete(light.preRenderingLogicMethod);
                 });
                 return this._lights.delete(name);
 
@@ -216,7 +229,6 @@ export default class Sfyri3DInstance {
                         if (shouldDisposeMaterials)
                             if (meshChild.material instanceof Material)
                                 meshChild.material.dispose();
-
                             else
                                 for (let j = 0; j < meshChild.material.length; j++)
                                     meshChild.material[j].dispose();
@@ -224,6 +236,13 @@ export default class Sfyri3DInstance {
                 });
                 //REMOVE FROM SCENE
                 this.scene.remove(object3D.object);
+
+                //REMOVE PIPELINE METHODS
+                if (object3D.preRenderingAnimationMethod)
+                    this._preRenderingAnimationMethods.delete(object3D.preRenderingAnimationMethod);
+                if (object3D.preRenderingLogicMethod)
+                    this._preRenderingLogicMethods.delete(object3D.preRenderingLogicMethod);
+
                 //REMOVE FROM INSTANCE MAP
                 return this._objects3D.delete(name);
         }
@@ -241,7 +260,6 @@ export default class Sfyri3DInstance {
             camera.aspect = this.renderer.domElement.clientWidth / this.renderer.domElement.clientHeight;
             camera.updateProjectionMatrix();
         }
-
         //ORTOGRAPHIC CAMERA
         else if (camera instanceof OrthographicCamera) {
             const width = this.renderer.domElement.clientWidth;
@@ -283,10 +301,10 @@ export default class Sfyri3DInstance {
     //NOTE -    The methods are written in order of use: pre animation > pre logic.
     //          The pipeline flows like this to make eventual collision masks updated for the logic checks.
     preRenderingAnimation() {
-        console.log("Method not implemented.");
+        this._preRenderingAnimationMethods.forEach(method => method(this));
     }
     preRenderingLogic() {
-        console.log("Method not implemented.");
+        this._preRenderingLogicMethods.forEach(method => method(this));
     }
     //!SECTION - RENDER STEP LIFECYCLE METHODS
 

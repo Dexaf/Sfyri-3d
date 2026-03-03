@@ -92,11 +92,9 @@ describe('Sfyri3DInstance', () => {
         const cancelSpy = vi.spyOn(global, "cancelAnimationFrame").mockImplementation(() => { });
 
         sfyri3DInstance!.startRender();
-
         expect(sfyri3DInstance!["_animationFrameId"]).not.toBeNull();
 
         sfyri3DInstance!.stopRender();
-
         expect(sfyri3DInstance!["_animationFrameId"]).toBeNull();
 
         cancelSpy.mockRestore();
@@ -108,13 +106,22 @@ describe('Sfyri3DInstance', () => {
         const lightAsset: ISfyri3DAsset<DirectionalLight> = {
             name: "test-light",
             object: new DirectionalLight(),
-            properties: {}
+            properties: {},
+            preRenderingAnimationMethod: () => { },
+            preRenderingLogicMethod: () => { }
         };
+
+        //NOTE: no asset added so no methods
+        expect(sfyri3DInstance!['_preRenderingAnimationMethods'].size).toBe(0);
+        expect(sfyri3DInstance!['_preRenderingLogicMethods'].size).toBe(0);
 
         sfyri3DInstance!.addAsset(lightAsset);
 
+        //expected status of asset
         expect(sfyri3DInstance!.getAsset(lightAsset.name, "light")).not.toBe(undefined);
         expect(sfyri3DInstance!.scene.children.includes(lightAsset.object)).toBe(true);
+        expect(sfyri3DInstance!['_preRenderingAnimationMethods'].size).toBe(1);
+        expect(sfyri3DInstance!['_preRenderingLogicMethods'].size).toBe(1);
     });
 
     it("adds an Object3D asset correctly", () => {
@@ -122,13 +129,22 @@ describe('Sfyri3DInstance', () => {
         const objectAsset: ISfyri3DAsset<Object3D> = {
             name: "test-object",
             object: mesh,
-            properties: {}
+            properties: {},
+            preRenderingAnimationMethod: () => { },
+            preRenderingLogicMethod: () => { }
         };
+
+        //NOTE: no asset added so no methods
+        expect(sfyri3DInstance!['_preRenderingAnimationMethods'].size).toBe(0);
+        expect(sfyri3DInstance!['_preRenderingLogicMethods'].size).toBe(0);
 
         sfyri3DInstance!.addAsset(objectAsset);
 
+        //expected status of asset
         expect(sfyri3DInstance!.getAsset(objectAsset.name, "object3D")).not.toBe(undefined);
         expect(sfyri3DInstance!.scene.children.includes(objectAsset.object)).toBe(true);
+        expect(sfyri3DInstance!['_preRenderingAnimationMethods'].size).toBe(1);
+        expect(sfyri3DInstance!['_preRenderingLogicMethods'].size).toBe(1);
     });
 
     it("removes a Light asset correctly", () => {
@@ -139,13 +155,20 @@ describe('Sfyri3DInstance', () => {
         const lightAsset: ISfyri3DAsset<DirectionalLight> = {
             name: "test-light",
             object: light,
-            properties: {}
+            properties: {},
+            preRenderingAnimationMethod: () => { },
+            preRenderingLogicMethod: () => { }
         };
 
+        //check before removing
         sfyri3DInstance!.addAsset(lightAsset);
+        expect(sfyri3DInstance!['_preRenderingAnimationMethods'].size).toBe(1);
+        expect(sfyri3DInstance!['_preRenderingLogicMethods'].size).toBe(1);
 
+        //check after removing that everything is disposed
         const result = sfyri3DInstance!.removeAsset("test-light", "light");
-
+        expect(sfyri3DInstance!['_preRenderingAnimationMethods'].size).toBe(0);
+        expect(sfyri3DInstance!['_preRenderingLogicMethods'].size).toBe(0);
         expect(result).toBe(true);
         expect(sfyri3DInstance!["_lights"].has("test-light")).toBe(false);
         expect(sfyri3DInstance!.scene.children.includes(light)).toBe(false);
@@ -160,20 +183,26 @@ describe('Sfyri3DInstance', () => {
         const objectAsset: ISfyri3DAsset<Object3D> = {
             name: "test-object",
             object: mesh,
-            properties: {}
+            properties: {},
+            preRenderingAnimationMethod: () => { },
+            preRenderingLogicMethod: () => { }
         };
 
+        //check before removing
         sfyri3DInstance!.addAsset(objectAsset);
+        expect(sfyri3DInstance!['_preRenderingAnimationMethods'].size).toBe(1);
+        expect(sfyri3DInstance!['_preRenderingLogicMethods'].size).toBe(1);
 
         const geometryDisposeSpy = vi.spyOn(geometry, "dispose");
         const materialDisposeSpy = vi.spyOn(material, "dispose");
 
+        //check after removing that everything is disposed
         const result = sfyri3DInstance!.removeAsset("test-object", "object3D", true);
-
+        expect(sfyri3DInstance!['_preRenderingAnimationMethods'].size).toBe(0);
+        expect(sfyri3DInstance!['_preRenderingLogicMethods'].size).toBe(0);
         expect(result).toBe(true);
         expect(sfyri3DInstance!["_objects3D"].has("test-object")).toBe(false);
         expect(sfyri3DInstance!.scene.children.includes(mesh)).toBe(false);
-
         expect(geometryDisposeSpy).toHaveBeenCalled();
         expect(materialDisposeSpy).toHaveBeenCalled();
     });
@@ -183,4 +212,44 @@ describe('Sfyri3DInstance', () => {
         expect(result).toBe(false);
     });
     //!SECTION - ASSETS HANDLING
+
+    it("should stop the rendering and clean the memory from the assets", () => {
+        // mock cancelAnimationFrame
+        const cancelSpy = vi.spyOn(global, "cancelAnimationFrame").mockImplementation(() => { });
+
+        const geometry = new BoxGeometry();
+        const material = new MeshBasicMaterial();
+        const mesh = new Mesh(geometry, material);
+
+        const objectAsset: ISfyri3DAsset<Object3D> = {
+            name: "test-object",
+            object: mesh,
+            properties: {},
+            preRenderingAnimationMethod: () => { },
+            preRenderingLogicMethod: () => { }
+        };
+
+        //check before removing
+        sfyri3DInstance!.addAsset(objectAsset);
+
+        sfyri3DInstance!.startRender();
+
+        const geometryDisposeSpy = vi.spyOn(geometry, "dispose");
+        const materialDisposeSpy = vi.spyOn(material, "dispose");
+
+        sfyri3DInstance!.killRender(true);
+
+        //check after removing that everything is disposed
+        //object was cleaned
+        expect(sfyri3DInstance!['_preRenderingAnimationMethods'].size).toBe(0);
+        expect(sfyri3DInstance!['_preRenderingLogicMethods'].size).toBe(0);
+        expect(sfyri3DInstance!["_objects3D"].has("test-object")).toBe(false);
+        expect(sfyri3DInstance!.scene.children.includes(mesh)).toBe(false);
+        expect(geometryDisposeSpy).toHaveBeenCalled();
+        expect(materialDisposeSpy).toHaveBeenCalled();
+        //rendering was stopped
+        expect(sfyri3DInstance!["_animationFrameId"]).toBeNull();
+
+        cancelSpy.mockRestore();
+    })
 });
