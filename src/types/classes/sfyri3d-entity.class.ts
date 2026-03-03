@@ -5,6 +5,8 @@ export type Sfyri3DEntityTypes = Object3D | Light;
 
 /**
  * Entity used inside the instance to handle pipelines, subscriptions and memory.
+ * To add and remove an entity from the istance pass only by the methods, this ensure that
+ * everything keeps working.
  */
 export default class Sfyri3DEntity<Sfyri3DEntityTypes> {
     //SECTION - PROPS
