@@ -1,11 +1,28 @@
 import { Scene, Camera, WebGLRenderer, Timer, PerspectiveCamera, OrthographicCamera, Material, Object3D, Light, Mesh, DirectionalLight, PointLight, SpotLight } from "three";
-import ISfyri3DAsset, { Sfyri3DAssetTypes } from "../interfaces/sfyri3d-asset.interface";
-import { isSfyri3DLightAsset, isSfyri3DObject3DAsset } from "../../utils/type-guards";
+import { isSfyri3DLightEntity, isSfyri3DObject3DEntity } from "../../utils/type-guards";
+import Sfyri3DEntity, { Sfyri3DEntityTypes } from "./sfyri3d-entity.class";
+import { assertSfyri3DState } from "../../utils/assertions";
+import { Sfyri3DStateEntry } from "./sfyri3d-state.class";
 
 /**
- * Entry point of the Sfyri 3D Framework handling system
+ * Entry point of the Sfyri 3D Framework handling system.
+ * 
+ * The type T represent the props interface, use it as per this example:
+ * ```ts
+    type keys = 'count' | 'label';
+
+    interface ISfyri3DState extends Record<keys, Sfyri3DStateEntry<any>> {}
+
+    const state: ISfyri3DState = {
+        count: new Sfyri3DStateEntry<number>('count', 0),
+        label: new Sfyri3DStateEntry<string>('label', 'hi'),
+    };
+ * ```
+    and then pass ISfyri3DState as T, make it empty if you don't need a global state.
+    those passage areneeded to have intellisense and guarantee that the methods
+    that interact with the global state can access existing methods in the entries.
  */
-export default class Sfyri3DInstance {
+export default class Sfyri3DInstance<T> {
     //SECTION - THREEJS PROPS
     private _scene: Scene;
     public get scene(): Scene {
@@ -56,29 +73,39 @@ export default class Sfyri3DInstance {
     /** holds the resize function ref passed to the addEventListener so we can remove it later */
     private _resizeEventFunctionRef: (() => void) | null = null;
 
-    //SECTION - ASSETS PROPS
+    //SECTION - EntityS PROPS
     public materials: Map<string, Material>[] = [];
 
     //NOTE - the setters are handled in the private methods 
-    private _objects3D: Map<string, ISfyri3DAsset<Object3D>> = new Map();
-    private _lights: Map<string, ISfyri3DAsset<Light>> = new Map();
-    private _preRenderingAnimationMethods: Set<((sfyri3DInstanceRef: Sfyri3DInstance) => void)> = new Set();
-    private _preRenderingLogicMethods: Set<((sfyri3DInstanceRef: Sfyri3DInstance) => void)> = new Set();
-    //!SECTION - ASSETS PROPS
+    private _objects3D: Map<string, Sfyri3DEntity<Object3D>> = new Map();
+    private _lights: Map<string, Sfyri3DEntity<Light>> = new Map();
+    private _preRenderingAnimationMethods: Set<((sfyri3DInstanceRef: Sfyri3DInstance<T>) => void)> = new Set();
+    private _preRenderingLogicMethods: Set<((sfyri3DInstanceRef: Sfyri3DInstance<T>) => void)> = new Set();
+    //!SECTION - EntityS PROPS
+
+    // GLOBAL STATE
+    /** Used to share data along the instance */
+    public state: T;
     //!SECTION - SFYRI3D PROPS
 
     //CONSTRUCTOR
-    constructor(scene: Scene, renderer: WebGLRenderer, cameras: Camera[]) {
+    constructor(scene: Scene, renderer: WebGLRenderer, cameras: Camera[], initState: any) {
         //passed props assign
         this._scene = scene;
         this._renderer = renderer;
         if (cameras.length === 0)
-            throw new Error(`SFYRI - Sfyri3DInstance Constructor\nNo camera where passed to the instance you wanted to create.`);
+            throw new Error(`SFYRI3D - Sfyri3DInstance Constructor\nNo camera where passed to the instance you wanted to create.`);
 
         this._cameras = cameras;
+
+        //NOTE: this throws if the state is not null 
+        //      or composed only of keys with value of type Sfyri3DStateEntry<>
+        assertSfyri3DState(initState);
+        this.state = initState as T;
     }
 
     //SECTION - PUBLIC METHODS
+    //SECTION - RENDER HANDLING
     public startRender(
         enableResize: boolean = true,
         targetFps: number | null = null) {
@@ -117,7 +144,7 @@ export default class Sfyri3DInstance {
         if (this._animationFrameId) {
             cancelAnimationFrame(this._animationFrameId);
             this._animationFrameId = null;
-        } else throw new Error(`SFYRI - Sfyri3DInstance stopRender\nThis instance is not rendering.`);
+        } else throw new Error(`SFYRI3D - Sfyri3DInstance stopRender\nThis instance is not rendering.`);
     }
 
     /**
@@ -125,27 +152,28 @@ export default class Sfyri3DInstance {
      * @shouldDisposeMaterials Dispose all the materials used in the scene, default false.
      * @summary Stops the render only if it's on, else throws an error. It then dispose of all the geometries and materials if asked.
      * The materials map is not directly touched, if you need to dispose of them, do it manually (be aware, if a material you placed in the
-     * map is referenced by an asset that gets his material disposed you are going to lose it). 
+     * map is referenced by an entity that gets his material disposed you are going to lose it). 
      */
     public killRender(shouldDisposeMaterials: boolean = false) {
         try {
             this.stopRender();
         } catch (error) {
-            throw new Error(`SFYRI - Sfyri3DInstance stopRender\nThis instance is not rendering.`);
+            throw new Error(`SFYRI3D - Sfyri3DInstance stopRender\nThis instance is not rendering.`);
         }
 
-        this._objects3D.forEach(o3d => this.removeAsset(o3d.name, "object3D", shouldDisposeMaterials));
-        this._lights.forEach(light => this.removeAsset(light.name, "light"));
+        this._objects3D.forEach(o3d => this.removeEntity(o3d.name, "object3D", shouldDisposeMaterials));
+        this._lights.forEach(light => this.removeEntity(light.name, "light"));
     }
+    //!SECTION - RENDER HANDLING
 
-    //SECTION - SFYRI3D ASSETS HANDLERS
+    //SECTION - SFYRI3D EntityS HANDLERS
     /**
-     * @param name name of asset to search
-     * @param sfyri3DAssetType type of the searched asset
-     * @returns the asset if found, else undefined.
+     * @param name name of entity to search
+     * @param sfyri3DEntityType type of the searched entity
+     * @returns the entity if found, else undefined.
      */
-    public getAsset(name: string, sfyri3DAssetType: 'light' | 'object3D'): ISfyri3DAsset<Object3D> | undefined {
-        switch (sfyri3DAssetType) {
+    public getEntity(name: string, sfyri3DEntityType: 'light' | 'object3D'): Sfyri3DEntity<Object3D> | undefined {
+        switch (sfyri3DEntityType) {
             case 'light':
                 return this._lights.get(name);
             case 'object3D':
@@ -155,44 +183,44 @@ export default class Sfyri3DInstance {
 
     /**
      * @throws This method can throw error.
-     * @param asset asset to add with an object that either extends Light or Object3D
-     * @summary this method add a valid assets and registers the pipeline methods in the instance render pipeline
+     * @param entity entity to add with an object that either extends Light or Object3D
+     * @summary this method add a valid Entitys and registers the pipeline methods in the instance render pipeline
      */
-    public addAsset(asset: ISfyri3DAsset<Sfyri3DAssetTypes>) {
+    public addEntity(entity: Sfyri3DEntity<Sfyri3DEntityTypes>) {
         //NOTE -    check Light before Object3D as Light actually extends Object3D, 
-        //          reversing the if makes it always fall in object3D if asset is valid.
+        //          reversing the if makes it always fall in object3D if entity is valid.
         //LIGHTS
-        if (isSfyri3DLightAsset(asset)) {
-            if (this._lights.has(asset.name)) throw new Error(`SFYRI - Sfyri3DInstance addAsset\n${asset.name} already exists in the lights asset's map.`);
-            this._lights.set(asset.name, asset);
+        if (isSfyri3DLightEntity(entity)) {
+            if (this._lights.has(entity.name)) throw new Error(`SFYRI3D - Sfyri3DInstance addEntity\n${entity.name} already exists in the lights entity's map.`);
+            this._lights.set(entity.name, entity);
         }
         //OBJECTS 3D
-        else if (isSfyri3DObject3DAsset(asset)) {
-            if (this._objects3D.has(asset.name)) throw new Error(`SFYRI - Sfyri3DInstance addAsset\n${asset.name} already exists in the objects3Ds asset's map.`);
-            this._objects3D.set(asset.name, asset);
+        else if (isSfyri3DObject3DEntity(entity)) {
+            if (this._objects3D.has(entity.name)) throw new Error(`SFYRI3D - Sfyri3DInstance addEntity\n${entity.name} already exists in the objects3Ds entity's map.`);
+            this._objects3D.set(entity.name, entity);
         }
         //ERROR
-        else throw new Error(`SFYRI - Sfyri3DInstance addAsset\n${(asset as any).name ?? "ND"} doesn't extends either object3D or light.`);
+        else throw new Error(`SFYRI3D - Sfyri3DInstance addEntity\n${(entity as any).name ?? "ND"} doesn't extends either object3D or light.`);
 
-        this.scene.add(asset.object);
+        this.scene.add(entity.object);
 
         //PIPELINE METHODS
-        if (asset.preRenderingAnimationMethod)
-            this._preRenderingAnimationMethods.add(asset.preRenderingAnimationMethod);
-        if (asset.preRenderingLogicMethod)
-            this._preRenderingLogicMethods.add(asset.preRenderingLogicMethod);
+        if (entity.preRenderingAnimationMethod)
+            this._preRenderingAnimationMethods.add(entity.preRenderingAnimationMethod);
+        if (entity.preRenderingLogicMethod)
+            this._preRenderingLogicMethods.add(entity.preRenderingLogicMethod);
     }
 
     /**
-     * @summary remove an asset from the scene and unregister the pipeline methods in the instance render pipeline.
+     * @summary remove an entity from the scene and unregister the pipeline methods in the instance render pipeline.
      * if it's a light it disposes of eventual shadowmap, if it's an object3D it disposes of the geometry and if asked the materials too.
-     * @param name name of the asset
-     * @param sfyri3DAssetType type used to check which map to use 
+     * @param name name of the entity
+     * @param sfyri3DEntityType type used to check which map to use 
      * @param shouldDisposeMaterials if removing an object3D it's checked to dispose the materials
-     * @returns if the removed asset existed returns true
+     * @returns if the removed entity existed returns true
      */
-    public removeAsset(name: string, sfyri3DAssetType: 'light' | 'object3D', shouldDisposeMaterials: boolean = false): boolean {
-        switch (sfyri3DAssetType) {
+    public removeEntity(name: string, sfyri3DEntityType: 'light' | 'object3D', shouldDisposeMaterials: boolean = false): boolean {
+        switch (sfyri3DEntityType) {
             //REMOVE LIGHT
             case 'light':
                 this._lights.forEach(light => {
@@ -210,6 +238,8 @@ export default class Sfyri3DInstance {
                         this._preRenderingAnimationMethods.delete(light.preRenderingAnimationMethod);
                     if (light.preRenderingLogicMethod)
                         this._preRenderingLogicMethods.delete(light.preRenderingLogicMethod);
+                    if (light.stateEntrySubscriptions)
+                        this.cleanSubscriptions(light.name, light.stateEntrySubscriptions);
                 });
                 return this._lights.delete(name);
 
@@ -242,12 +272,14 @@ export default class Sfyri3DInstance {
                     this._preRenderingAnimationMethods.delete(object3D.preRenderingAnimationMethod);
                 if (object3D.preRenderingLogicMethod)
                     this._preRenderingLogicMethods.delete(object3D.preRenderingLogicMethod);
+                if (object3D.stateEntrySubscriptions)
+                    this.cleanSubscriptions(object3D.name, object3D.stateEntrySubscriptions);
 
                 //REMOVE FROM INSTANCE MAP
                 return this._objects3D.delete(name);
         }
     }
-    //!SECTION - SFYRI3D ASSETS HANDLERS
+    //!SECTION - SFYRI3D EntityS HANDLERS
     //!SECTION - PUBLIC METHODS
 
     //SECTION - PRIVATE METHODS
@@ -307,5 +339,18 @@ export default class Sfyri3DInstance {
         this._preRenderingLogicMethods.forEach(method => method(this));
     }
     //!SECTION - RENDER STEP LIFECYCLE METHODS
+
+    private cleanSubscriptions(entityName: string, stateEntrySubscriptions: Set<string>) {
+        stateEntrySubscriptions.forEach(sub => {
+            const entry = (this.state as ISfyri3DState)[sub];
+            if (entry)
+                entry.unsubscribe(entityName, stateEntrySubscriptions, false);
+        })
+        stateEntrySubscriptions.clear();
+    }
     //!SECTION - PRIVATE METHODS
+}
+
+interface ISfyri3DState {
+    [key: string]: Sfyri3DStateEntry<any>;
 }

@@ -18,9 +18,11 @@ describe('CreateSfyri3DInstance', () => {
 
     //SECTION - CORRECT BEHAVIOUR
     it('should create a valid Sfyri3DInstance', () => {
-        const instance = createSfyri3DInstance(
+        const instance = createSfyri3DInstance<null>(
             canvas,
-            (container) => [new PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000)]
+            (container) => [new PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000)],
+            null,
+            null
         );
 
         //With right input it should be not null
@@ -30,9 +32,11 @@ describe('CreateSfyri3DInstance', () => {
     });
 
     it('should create a valid Sfyri3DInstance by searching the canvas from query selector', () => {
-        const instance = createSfyri3DInstance(
+        const instance = createSfyri3DInstance<null>(
             "#mock-canvas",
-            (container) => [camera!]
+            (container) => [camera!],
+            null,
+            null
         );
 
         expect(instance).not.toBe(null);
@@ -41,23 +45,29 @@ describe('CreateSfyri3DInstance', () => {
 
     //SECTION - STOP BREAKING BEHAVIOUR
     it('should throw if no final canvas is passed', () => {
-        expect(() => createSfyri3DInstance(
+        expect(() => createSfyri3DInstance<null>(
             null as unknown as HTMLCanvasElement,
-            () => [camera!]
+            () => [camera!],
+            null,
+            null
         )).toThrow();
     });
 
     it('should throw if query selector does not match any element', () => {
-        expect(() => createSfyri3DInstance(
+        expect(() => createSfyri3DInstance<null>(
             '#non-existent-canvas',
-            () => [camera!]
+            () => [camera!],
+            null,
+            null
         )).toThrow();
     });
 
     it('should throw if camera factory returns empty array', () => {
-        expect(() => createSfyri3DInstance(
+        expect(() => createSfyri3DInstance<null>(
             canvas,
-            () => []
+            () => [],
+            null,
+            null
         )).toThrow();
     });
     //!SECTION - STOP BREAKING BEHAVIOUR

@@ -1,16 +1,16 @@
 import { Light, Object3D } from "three";
-import ISfyri3DAsset, { Sfyri3DAssetTypes } from "../types/interfaces/sfyri3d-asset.interface";
+import Sfyri3DEntity, { Sfyri3DEntityTypes } from "../types/classes/sfyri3d-entity.class";
 
-/** type guard for light ISfyri3DAsset*/
-export function isSfyri3DLightAsset(
-    asset: ISfyri3DAsset<Sfyri3DAssetTypes>
-): asset is ISfyri3DAsset<Light> {
-    return asset.object instanceof Light;
+/** type guard for light Sfyri3DEntity*/
+export function isSfyri3DLightEntity(
+    entity: Sfyri3DEntity<Sfyri3DEntityTypes>
+): entity is Sfyri3DEntity<Light> {
+    return entity.object instanceof Light;
 }
 
-/** type guard for object3D ISfyri3DAsset*/
-export function isSfyri3DObject3DAsset(
-    asset: ISfyri3DAsset<Sfyri3DAssetTypes>
-): asset is ISfyri3DAsset<Object3D> {
-    return asset.object instanceof Object3D;
+/** type guard for object3D Sfyri3DEntity*/
+export function isSfyri3DObject3DEntity(
+    entity: Sfyri3DEntity<Sfyri3DEntityTypes>
+): entity is Sfyri3DEntity<Object3D> {
+    return entity.object instanceof Object3D;
 }
