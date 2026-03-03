@@ -21,6 +21,8 @@ import { Sfyri3DStateEntry } from "./sfyri3d-state.class";
     and then pass ISfyri3DState as T, make it empty if you don't need a global state.
     those passage areneeded to have intellisense and guarantee that the methods
     that interact with the global state can access existing methods in the entries.
+
+    NOTE: the key of the obj have to match the passed key in the constructor of Sfyri3DStateEntry
  */
 export default class Sfyri3DInstance<T> {
     //SECTION - THREEJS PROPS
@@ -238,6 +240,7 @@ export default class Sfyri3DInstance<T> {
                         this._preRenderingAnimationMethods.delete(light.preRenderingAnimationMethod);
                     if (light.preRenderingLogicMethod)
                         this._preRenderingLogicMethods.delete(light.preRenderingLogicMethod);
+                    //REMOVE SUBSCRIPTIONS
                     if (light.stateEntrySubscriptions)
                         this.cleanSubscriptions(light.name, light.stateEntrySubscriptions);
                 });
@@ -272,6 +275,7 @@ export default class Sfyri3DInstance<T> {
                     this._preRenderingAnimationMethods.delete(object3D.preRenderingAnimationMethod);
                 if (object3D.preRenderingLogicMethod)
                     this._preRenderingLogicMethods.delete(object3D.preRenderingLogicMethod);
+                //REMOVE SUBSCRIPTIONS
                 if (object3D.stateEntrySubscriptions)
                     this.cleanSubscriptions(object3D.name, object3D.stateEntrySubscriptions);
 
@@ -344,8 +348,10 @@ export default class Sfyri3DInstance<T> {
         stateEntrySubscriptions.forEach(sub => {
             const entry = (this.state as ISfyri3DState)[sub];
             if (entry)
+                //NOTE: we need false into shouldDeleteEntry to avoid breaking the for loop
                 entry.unsubscribe(entityName, stateEntrySubscriptions, false);
         })
+        //remove the entries
         stateEntrySubscriptions.clear();
     }
     //!SECTION - PRIVATE METHODS

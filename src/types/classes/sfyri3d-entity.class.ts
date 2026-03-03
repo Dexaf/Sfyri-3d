@@ -22,8 +22,9 @@ export default class Sfyri3DEntity<Sfyri3DEntityTypes> {
     }
 
     /**
-     *  List of event where this entity is subscribed, used to trace the subscriptions and unsusbcribe on remove from instance
-     *  UNLESS YOU HAVE TO CREATE IT THE FIRST TIME YOU USE IT, DON'T TOUCH IT DIRECTLY, SFYRI3D STATE HANDLES IT.
+     *  List of the keys of the entry where this entity is subscribed, used to trace the subscriptions and unsusbcribe 
+     *  on remove from instance.
+     *  UNLESS YOU HAVE TO CREATE IT THE FIRST TIME YOU USE IT, DON'T TOUCH IT DIRECTLY, SFYRI3D STATE AND THE ISTANCE HANDLES IT.
      */
     public stateEntrySubscriptions: Set<string> | null = null;
 

@@ -48,6 +48,8 @@ export class Sfyri3DStateEntry<T> {
     /**
      * @param entityName Name of the observer to be removed
      * @param subscriberStateEntrySubscriptions subscription list of the entity, we remove this entry in the subscriptions
+     * @param shouldDeleteEntry decide if should delete entry from caller inside the method or not, you should leave it to true, it's used internally to
+     * avoid exception in certain situations.
      * @returns if the entry existes it return true else false
      * @summary Add an observer record in the list, this observer method will be called when the state value get updated
      */
@@ -59,6 +61,7 @@ export class Sfyri3DStateEntry<T> {
             if (shouldDeleteEntry)
                 subscriberStateEntrySubscriptions.delete(this.key);
 
+            //save some memory
             if (this._subscribed.size === 0)
                 this._subscribed = null;
 
