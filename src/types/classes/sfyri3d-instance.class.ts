@@ -269,8 +269,8 @@ export default class Sfyri3DInstance {
         this._timer.update();
         this._timeSinceLastFrame = this._timer.getElapsed();
         if (this._timer.getElapsed() - this._timeSinceLastFrame >= this._timeToPassBetweenFrames) {
-            this.preRenderingLogic();
             this.preRenderingAnimation();
+            this.preRenderingLogic();
             for (let i = 0; i < this.cameras.length; i++)
                 this.renderer.render(this.scene, this.cameras[i]);
         }
