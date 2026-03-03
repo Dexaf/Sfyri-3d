@@ -156,6 +156,7 @@ export default class Sfyri3DInstance {
     }
 
     /**
+     * @throws This method can throw error.
      * @param asset asset to add with an object that either extends Light or Object3D
      * @summary this method add a valid assets and registers the pipeline methods in the instance render pipeline
      */
@@ -171,7 +172,8 @@ export default class Sfyri3DInstance {
         else if (isSfyri3DObject3DAsset(asset)) {
             if (this._objects3D.has(asset.name)) throw new Error(`SFYRI - Sfyri3DInstance addAsset\n${asset.name} already exists in the objects3Ds asset's map.`);
             this._objects3D.set(asset.name, asset);
-        } else throw new Error(`SFYRI - Sfyri3DInstance addAsset\n${asset.name} doesn't extends either object3D or light.`);
+        } else throw new Error(`SFYRI - Sfyri3DInstance addAsset\n${(asset as any).name ?? "ND"} doesn't extends either object3D or light.`);
+        this.scene.add(asset.object);
     }
 
     /**
@@ -267,24 +269,24 @@ export default class Sfyri3DInstance {
      */
     private renderNextStep() {
         this._timer.update();
-        this._timeSinceLastFrame = this._timer.getElapsed();
         if (this._timer.getElapsed() - this._timeSinceLastFrame >= this._timeToPassBetweenFrames) {
             this.preRenderingAnimation();
             this.preRenderingLogic();
             for (let i = 0; i < this.cameras.length; i++)
                 this.renderer.render(this.scene, this.cameras[i]);
         }
+        this._timeSinceLastFrame = this._timer.getElapsed();
         this._animationFrameId = requestAnimationFrame(this.renderNextStep);
     }
 
     //SECTION - RENDER STEP LIFECYCLE METHODS
-    //NOTE -    they are written in order of use: pre animation > pre logic.
+    //NOTE -    The methods are written in order of use: pre animation > pre logic.
     //          The pipeline flows like this to make eventual collision masks updated for the logic checks.
     preRenderingAnimation() {
-        throw new Error("Method not implemented.");
+        console.log("Method not implemented.");
     }
     preRenderingLogic() {
-        throw new Error("Method not implemented.");
+        console.log("Method not implemented.");
     }
     //!SECTION - RENDER STEP LIFECYCLE METHODS
 
