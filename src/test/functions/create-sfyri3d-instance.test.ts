@@ -7,7 +7,6 @@ describe('CreateSfyri3DInstance', () => {
     let camera: PerspectiveCamera | null;
 
     beforeAll(() => {
-        // crea un canvas fittizio per testare
         canvas = document.createElement('canvas');
         canvas.id = "mock-canvas"
         canvas.width = 800;
