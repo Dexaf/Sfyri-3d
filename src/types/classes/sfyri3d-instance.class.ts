@@ -44,7 +44,7 @@ export default class Sfyri3DInstance<T> {
 
     //SECTION - SFYRI3D PROPS
     //SECTION - PROPS FOR ANIMATION LOOP
-    /** the timer will be created in the startRender method */
+    //NOTE: the timer will be created in the startRender method
     private _timer!: Timer;
 
     /** used to calcuate the time between frame in render cycle */
@@ -55,8 +55,8 @@ export default class Sfyri3DInstance<T> {
         return this._targetFps;
     }
     /**
-     * @param targetFps the fps you want to use as a ceiling for the animation loop to target.
-     * If you don't set it the default is 60fps
+     * @param targetFps the fps you want to use as a ceiling for the render loop to target.
+     * If you don't set it the default is 60fps.
      */
     public setTargetFps(targetFps: number) {
         this._targetFps = targetFps;
@@ -65,7 +65,7 @@ export default class Sfyri3DInstance<T> {
 
     private _timeSinceLastFrame: number = 0;
 
-    /** When not null, the animation is going on */
+    /** Holds the request animation frame id, as such when not null, the animation is going on */
     private _animationFrameId: number | null = null;
     public get isRenderingOn(): boolean {
         return this._animationFrameId !== null;
@@ -75,19 +75,33 @@ export default class Sfyri3DInstance<T> {
     /** holds the resize function ref passed to the addEventListener so we can remove it later */
     private _resizeEventFunctionRef: (() => void) | null = null;
 
-    //SECTION - EntityS PROPS
+    //SECTION - ENTITIES PROPS
+    /** A global map to access materials across the instance
+     * @reminder if you delete an entity that's an Object3D with a material, using the remove entity method
+     * without the shouldDisposeMaterials property setted to false, the material will be disposed,
+     * this means that all the other objects that use it by ref will be affected.
+    */
     public materials: Map<string, Material>[] = [];
 
     //NOTE - the setters are handled in the private methods 
     private _objects3D: Map<string, Sfyri3DEntity<Object3D>> = new Map();
     private _lights: Map<string, Sfyri3DEntity<Light>> = new Map();
-    private _preRenderingAnimationMethods: Set<((sfyri3DInstanceRef: Sfyri3DInstance<T>) => void)> = new Set();
-    private _preRenderingLogicMethods: Set<((sfyri3DInstanceRef: Sfyri3DInstance<T>) => void)> = new Set();
-    //!SECTION - EntityS PROPS
+    //!SECTION - ENTITIES PROPS
 
     // GLOBAL STATE
     /** Used to share data along the instance */
     public state: T;
+
+    //SECTION - PROCESSES PROPS
+    /** map of processes that fires before executing the methods of the pipeline */
+    private _prePipelineProcesses: Map<string, (sfyri3DInstanceRef: Sfyri3DInstance<T>) => {}> = new Map();
+    /** map of methods that handles simple movements and animation triggers */
+    private _preRenderingAnimationMethods: Set<((sfyri3DInstanceRef: Sfyri3DInstance<T>) => void)> = new Set();
+    /** map of methods that handles logic and may indirectly trigger animations and movements */
+    private _preRenderingLogicMethods: Set<((sfyri3DInstanceRef: Sfyri3DInstance<T>) => void)> = new Set();
+    /** map of processes that fires after executing the methods of the pipeline */
+    private _postPipelineProcesses: Map<string, (sfyri3DInstanceRef: Sfyri3DInstance<T>) => {}> = new Map();
+    //!SECTION - PROCESSES PROPS
     //!SECTION - SFYRI3D PROPS
 
     //CONSTRUCTOR
@@ -168,7 +182,7 @@ export default class Sfyri3DInstance<T> {
     }
     //!SECTION - RENDER HANDLING
 
-    //SECTION - SFYRI3D EntityS HANDLERS
+    //SECTION - SFYRI3D ENTITIES HANDLERS
     /**
      * @param name name of entity to search
      * @param sfyri3DEntityType type of the searched entity
@@ -186,7 +200,7 @@ export default class Sfyri3DInstance<T> {
     /**
      * @throws This method can throw error.
      * @param entity entity to add with an object that either extends Light or Object3D
-     * @summary this method add a valid Entitys and registers the pipeline methods in the instance render pipeline
+     * @summary this method add a valid Entities and registers the pipeline methods in the instance render pipeline
      */
     public addEntity(entity: Sfyri3DEntity<Sfyri3DEntityTypes>) {
         //NOTE -    check Light before Object3D as Light actually extends Object3D, 
@@ -214,12 +228,12 @@ export default class Sfyri3DInstance<T> {
     }
 
     /**
-     * @summary remove an entity from the scene and unregister the pipeline methods in the instance render pipeline.
-     * if it's a light it disposes of eventual shadowmap, if it's an object3D it disposes of the geometry and if asked the materials too.
      * @param name name of the entity
      * @param sfyri3DEntityType type used to check which map to use 
      * @param shouldDisposeMaterials if removing an object3D it's checked to dispose the materials
      * @returns if the removed entity existed returns true
+     * @summary remove an entity from the scene and unregister the pipeline methods in the instance render pipeline.
+     * if it's a light it disposes of eventual shadowmap, if it's an object3D it disposes of the geometry and if asked the materials too.
      */
     public removeEntity(name: string, sfyri3DEntityType: 'light' | 'object3D', shouldDisposeMaterials: boolean = false): boolean {
         switch (sfyri3DEntityType) {
@@ -283,7 +297,46 @@ export default class Sfyri3DInstance<T> {
                 return this._objects3D.delete(name);
         }
     }
-    //!SECTION - SFYRI3D EntityS HANDLERS
+    //!SECTION - SFYRI3D ENTITIES HANDLERS
+
+    //SECTION - SFYRI3D PROCESSES HANDLERS
+    /**
+     * @throws This method can throw error.
+     * @param key name of the process setted in the pipeline.
+     * @param type type of process, can be "pre" or "post".
+     * @param process the process that get fired at the moment that get decided by the type
+     * @summary add a function to the step pipeline, with "pre" type it will be excuted before the animation and logic step,
+     * with "post" it gets executed after those steps. For cleanliness purpose you can't have doubles in the same type group,
+     * trying to do so will raise an error.
+     */
+    public addProcessToPipeline(key: string, type: "pre" | "post", process: () => {}) {
+        switch (type) {
+            case "pre":
+                if (this._prePipelineProcesses.has(key)) throw new Error(`SFYRI3D - Sfyri3DInstance addProcessToPipeline\n${key} already exists in the pre pipeline processes's map.`)
+                this._prePipelineProcesses.set(key, process);
+                break;
+            case "post":
+                if (this._postPipelineProcesses.has(key)) throw new Error(`SFYRI3D - Sfyri3DInstance addProcessToPipeline\n${key} already exists in the post pipeline processes's map.`)
+                this._postPipelineProcesses.set(key, process);
+                break;
+        }
+    }
+
+    /**
+     * @param key name of the process to delete in the pipeline.
+     * @param type type of process, can be "pre" or "post".
+     * @returns true if deletes the process, false if there where no instance of the process in the group
+     * of the type used as parameter.
+     */
+    public removeProcessToPipeline(key: string, type: "pre" | "post"): boolean {
+        switch (type) {
+            case "pre":
+                return this._prePipelineProcesses.delete(key);
+            case "post":
+                return this._postPipelineProcesses.delete(key);
+        }
+    }
+    //!SECTION - SFYRI3D PROCESSES HANDLERS
     //!SECTION - PUBLIC METHODS
 
     //SECTION - PRIVATE METHODS
@@ -324,8 +377,10 @@ export default class Sfyri3DInstance<T> {
     private renderNextStep() {
         this._timer.update();
         if (this._timer.getElapsed() - this._timeSinceLastFrame >= this._timeToPassBetweenFrames) {
-            this.preRenderingAnimation();
-            this.preRenderingLogic();
+            this.prePipelineProcessesExecution();
+            this.preRenderingAnimationMethodsExecution();
+            this.preRenderingLogicMethodsExecution();
+            this.postPipelineProcessesExecution();
             for (let i = 0; i < this.cameras.length; i++)
                 this.renderer.render(this.scene, this.cameras[i]);
         }
@@ -334,13 +389,19 @@ export default class Sfyri3DInstance<T> {
     }
 
     //SECTION - RENDER STEP LIFECYCLE METHODS
-    //NOTE -    The methods are written in order of use: pre animation > pre logic.
+    //NOTE -    The methods are written in order of use: pre pipeline > pre animation > pre logic > post pipeline.
     //          The pipeline flows like this to make eventual collision masks updated for the logic checks.
-    preRenderingAnimation() {
+    private prePipelineProcessesExecution() {
+        this._prePipelineProcesses.forEach(method => method(this));
+    }
+    private preRenderingAnimationMethodsExecution() {
         this._preRenderingAnimationMethods.forEach(method => method(this));
     }
-    preRenderingLogic() {
+    private preRenderingLogicMethodsExecution() {
         this._preRenderingLogicMethods.forEach(method => method(this));
+    }
+    private postPipelineProcessesExecution() {
+        this._postPipelineProcesses.forEach(method => method(this));
     }
     //!SECTION - RENDER STEP LIFECYCLE METHODS
 
