@@ -6,3 +6,4 @@
 - types props for entities
 - process pipelines (crud like operations)
 - global variables
+- global process pipelines (crud like operations)
