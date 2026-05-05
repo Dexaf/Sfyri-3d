@@ -377,7 +377,11 @@ export default class Sfyri3DInstance<T> {
     private renderNextStep = () => {
         this._timer.update();
 
-        if ((this._timer.getElapsed() - this._timeSinceLastFrame) >= this._timeToPassBetweenFrames) {
+        const currentTime = this._timer.getElapsed() * 1000;
+        const timeSinceLastRender = currentTime - this._timeSinceLastFrame;
+
+        if (timeSinceLastRender >= this._timeToPassBetweenFrames) {
+            this._timeSinceLastFrame = 0;
             this.prePipelineProcessesExecution();
             this.preRenderingAnimationMethodsExecution();
             this.preRenderingLogicMethodsExecution();
@@ -387,7 +391,6 @@ export default class Sfyri3DInstance<T> {
                 this.renderer.render(this.scene, this.cameras[i]);
         }
 
-        this._timeSinceLastFrame = this._timer.getElapsed();
         this._animationFrameId = requestAnimationFrame(this.renderNextStep);
     }
 
