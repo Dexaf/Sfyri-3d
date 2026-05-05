@@ -94,13 +94,13 @@ export default class Sfyri3DInstance<T> {
 
     //SECTION - PROCESSES PROPS
     /** map of processes that fires before executing the methods of the pipeline */
-    private _prePipelineProcesses: Map<string, (sfyri3DInstanceRef: Sfyri3DInstance<T>) => {}> = new Map();
+    private _prePipelineProcesses: Map<string, (sfyri3DInstanceRef: Sfyri3DInstance<T>) => void> = new Map();
     /** map of methods that handles simple movements and animation triggers */
     private _preRenderingAnimationMethods: Set<((sfyri3DInstanceRef: Sfyri3DInstance<T>) => void)> = new Set();
     /** map of methods that handles logic and may indirectly trigger animations and movements */
     private _preRenderingLogicMethods: Set<((sfyri3DInstanceRef: Sfyri3DInstance<T>) => void)> = new Set();
     /** map of processes that fires after executing the methods of the pipeline */
-    private _postPipelineProcesses: Map<string, (sfyri3DInstanceRef: Sfyri3DInstance<T>) => {}> = new Map();
+    private _postPipelineProcesses: Map<string, (sfyri3DInstanceRef: Sfyri3DInstance<T>) => void> = new Map();
     //!SECTION - PROCESSES PROPS
     //!SECTION - SFYRI3D PROPS
 
@@ -309,7 +309,7 @@ export default class Sfyri3DInstance<T> {
      * with "post" it gets executed after those steps. For cleanliness purpose you can't have doubles in the same type group,
      * trying to do so will raise an error.
      */
-    public addProcessToPipeline(key: string, type: "pre" | "post", process: () => {}) {
+    public addProcessToPipeline(key: string, type: "pre" | "post", process: (sfyri3DInstance: Sfyri3DInstance<T>) => void) {
         switch (type) {
             case "pre":
                 if (this._prePipelineProcesses.has(key)) throw new Error(`SFYRI3D - Sfyri3DInstance addProcessToPipeline\n${key} already exists in the pre pipeline processes's map.`)
