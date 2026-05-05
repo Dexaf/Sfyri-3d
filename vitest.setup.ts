@@ -6,7 +6,9 @@ vi.mock('three', async () => {
     return {
         ...actual,
         WebGLRenderer: class {
-            render() {};
+            render() { };
+            dispose() { };
+            forceContextLoss() { };
             domElement = document.createElement('canvas');
             setSize(width: number, height: number) { this.domElement.width = width; this.domElement.height = height; }
         },

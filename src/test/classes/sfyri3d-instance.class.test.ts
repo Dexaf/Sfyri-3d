@@ -1,4 +1,4 @@
-import { BoxGeometry, DirectionalLight, Mesh, MeshBasicMaterial, Object3D, PerspectiveCamera } from "three";
+import { BoxGeometry, DirectionalLight, Mesh, MeshBasicMaterial, PerspectiveCamera } from "three";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import Sfyri3DInstance from "../../types/classes/sfyri3d-instance.class";
 import { createSfyri3DInstance } from "../../utils/create-sfyri-3d-instance";
@@ -229,37 +229,60 @@ describe('Sfyri3DInstance', () => {
     //!SECTION - ENTITIES HANDLING
 
     it("should stop the rendering and clean the memory from the entities", () => {
-        // mock cancelAnimationFrame
-        const cancelSpy = vi.spyOn(global, "cancelAnimationFrame").mockImplementation(() => { });
+        const cancelSpy = vi
+            .spyOn(global, "cancelAnimationFrame")
+            .mockImplementation(() => { });
+
+        const removeEventListenerSpy = vi
+            .spyOn(window, "removeEventListener");
 
         const geometry = new BoxGeometry();
         const material = new MeshBasicMaterial();
         const mesh = new Mesh(geometry, material);
+
         const objectEntity = new Sfyri3DEntity(
             mesh,
             "test-object",
         );
 
-        //check before removing
         sfyri3DInstance!.addEntity(objectEntity);
-
         sfyri3DInstance!.startRender();
 
         const geometryDisposeSpy = vi.spyOn(geometry, "dispose");
         const materialDisposeSpy = vi.spyOn(material, "dispose");
 
+        const rendererDisposeSpy = vi.spyOn(sfyri3DInstance!.renderer, "dispose");
+        const contextLossSpy = vi.spyOn(
+            sfyri3DInstance!.renderer,
+            "forceContextLoss"
+        );
+
+        const timerDisconnectSpy = vi.spyOn(
+            (sfyri3DInstance as any)._timer,
+            "disconnect"
+        );
+
         sfyri3DInstance!.killRender(true);
 
-        //check after removing that everything is disposed
-        //object was cleaned
         expect(sfyri3DInstance!['_preRenderingAnimationMethods'].size).toBe(0);
         expect(sfyri3DInstance!['_preRenderingLogicMethods'].size).toBe(0);
         expect(sfyri3DInstance!["_objects3D"].has("test-object")).toBe(false);
         expect(sfyri3DInstance!.scene.children.includes(mesh)).toBe(false);
+
         expect(geometryDisposeSpy).toHaveBeenCalled();
         expect(materialDisposeSpy).toHaveBeenCalled();
-        //rendering was stopped
+
         expect(sfyri3DInstance!["_animationFrameId"]).toBeNull();
+
+        expect(rendererDisposeSpy).toHaveBeenCalled();
+        expect(contextLossSpy).toHaveBeenCalled();
+
+        expect(timerDisconnectSpy).toHaveBeenCalled();
+
+        expect(removeEventListenerSpy).toHaveBeenCalledWith(
+            "resize",
+            expect.any(Function)
+        );
 
         cancelSpy.mockRestore();
     })

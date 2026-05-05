@@ -187,6 +187,18 @@ export default class Sfyri3DInstance<T> {
 
         this._objects3D.forEach(o3d => this.removeEntity(o3d.name, "object3D", shouldDisposeMaterials));
         this._lights.forEach(light => this.removeEntity(light.name, "light"));
+        this._timer?.disconnect();
+
+        if (this._resizeEventFunctionRef)
+            window.removeEventListener('resize', this._resizeEventFunctionRef);
+
+        this._prePipelineProcesses.clear();
+        this._postPipelineProcesses.clear();
+        this._preRenderingAnimationMethods.clear();
+        this._preRenderingLogicMethods.clear();
+
+        this._renderer.dispose();
+        this._renderer.forceContextLoss();
     }
     //!SECTION - RENDER HANDLING
 
