@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, vi } from 'vitest';
 import { PerspectiveCamera } from 'three';
-import createSfyri3DInstance from '../../index';
+import createSfyri3DInstance from '../../utils/create-sfyri-3d-instance';
 
 describe('CreateSfyri3DInstance', () => {
     let canvas: HTMLCanvasElement;
