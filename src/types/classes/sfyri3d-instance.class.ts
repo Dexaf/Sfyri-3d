@@ -101,13 +101,13 @@ export default class Sfyri3DInstance<T> {
 
     //SECTION - PROCESSES PROPS
     /** map of processes that fires before executing the methods of the pipeline */
-    private _prePipelineProcesses: Map<string, (sfyri3DInstanceRef: Sfyri3DInstance<T>) => void> = new Map();
+    private _prePipelineProcesses: Map<string, (sfyri3DInstanceRef: Sfyri3DInstance<T>, deltaTime: number) => void> = new Map();
     /** map of methods that handles simple movements and animation triggers */
-    private _preRenderingAnimationMethods: Set<((sfyri3DInstanceRef: Sfyri3DInstance<T>) => void)> = new Set();
+    private _preRenderingAnimationMethods: Set<((sfyri3DInstanceRef: Sfyri3DInstance<T>, deltaTime: number) => void)> = new Set();
     /** map of methods that handles logic and may indirectly trigger animations and movements */
-    private _preRenderingLogicMethods: Set<((sfyri3DInstanceRef: Sfyri3DInstance<T>) => void)> = new Set();
+    private _preRenderingLogicMethods: Set<((sfyri3DInstanceRef: Sfyri3DInstance<T>, deltaTime: number) => void)> = new Set();
     /** map of processes that fires after executing the methods of the pipeline */
-    private _postPipelineProcesses: Map<string, (sfyri3DInstanceRef: Sfyri3DInstance<T>) => void> = new Map();
+    private _postPipelineProcesses: Map<string, (sfyri3DInstanceRef: Sfyri3DInstance<T>, deltaTime: number) => void> = new Map();
     //!SECTION - PROCESSES PROPS
     //!SECTION - SFYRI3D PROPS
 
@@ -402,10 +402,11 @@ export default class Sfyri3DInstance<T> {
 
         if (timeSinceLastRender >= this._timeToPassBetweenFrames) {
             this._timeSinceLastFrame = 0;
-            this.prePipelineProcessesExecution();
-            this.preRenderingAnimationMethodsExecution();
-            this.preRenderingLogicMethodsExecution();
-            this.postPipelineProcessesExecution();
+            const deltaTime = this._timer.getDelta();
+            this.prePipelineProcessesExecution(deltaTime);
+            this.preRenderingAnimationMethodsExecution(deltaTime);
+            this.preRenderingLogicMethodsExecution(deltaTime);
+            this.postPipelineProcessesExecution(deltaTime);
 
             for (let i = 0; i < this.cameras.length; i++)
                 this.renderer.render(this.scene, this.cameras[i]);
@@ -417,17 +418,17 @@ export default class Sfyri3DInstance<T> {
     //SECTION - RENDER STEP LIFECYCLE METHODS
     //NOTE -    The methods are written in order of use: pre pipeline > pre animation > pre logic > post pipeline.
     //          The pipeline flows like this to make eventual collision masks updated for the logic checks.
-    private prePipelineProcessesExecution() {
-        this._prePipelineProcesses.forEach(method => method(this));
+    private prePipelineProcessesExecution(deltaTime: number) {
+        this._prePipelineProcesses.forEach(method => method(this, deltaTime));
     }
-    private preRenderingAnimationMethodsExecution() {
-        this._preRenderingAnimationMethods.forEach(method => method(this));
+    private preRenderingAnimationMethodsExecution(deltaTime: number) {
+        this._preRenderingAnimationMethods.forEach(method => method(this, deltaTime));
     }
-    private preRenderingLogicMethodsExecution() {
-        this._preRenderingLogicMethods.forEach(method => method(this));
+    private preRenderingLogicMethodsExecution(deltaTime: number) {
+        this._preRenderingLogicMethods.forEach(method => method(this, deltaTime));
     }
-    private postPipelineProcessesExecution() {
-        this._postPipelineProcesses.forEach(method => method(this));
+    private postPipelineProcessesExecution(deltaTime: number) {
+        this._postPipelineProcesses.forEach(method => method(this, deltaTime));
     }
     //!SECTION - RENDER STEP LIFECYCLE METHODS
 
