@@ -25,6 +25,13 @@ import { Sfyri3DStateEntry } from "./sfyri3d-state.class";
     NOTE: the key of the obj have to match the passed key in the constructor of Sfyri3DStateEntry
  */
 export default class Sfyri3DInstance<T> {
+    //SECTION - GENERICS
+    private _canvasWrapper: HTMLElement;
+    public get canvasWrapper(): HTMLElement {
+        return this._canvasWrapper;
+    }
+    //!SECTION - GENERICS
+
     //SECTION - THREEJS PROPS
     private _scene: Scene;
     public get scene(): Scene {
@@ -105,8 +112,9 @@ export default class Sfyri3DInstance<T> {
     //!SECTION - SFYRI3D PROPS
 
     //CONSTRUCTOR
-    constructor(scene: Scene, renderer: WebGLRenderer, cameras: Camera[], initState: any) {
+    constructor(scene: Scene, renderer: WebGLRenderer, cameras: Camera[], canvasWrapper: HTMLElement, initState: any) {
         //passed props assign
+        this._canvasWrapper = canvasWrapper;
         this._scene = scene;
         this._renderer = renderer;
         if (cameras.length === 0)
@@ -134,7 +142,7 @@ export default class Sfyri3DInstance<T> {
                     this.handleResizeOnCamera(camera);
 
                     //UPDATE RENDER
-                    this.renderer.setSize(this.renderer.domElement.clientWidth, this.renderer.domElement.clientHeight);
+                    this.renderer.setSize(this._canvasWrapper.clientWidth, this._canvasWrapper.clientHeight, true);
                 }
             }
             window.addEventListener('resize', this._resizeEventFunctionRef);
@@ -346,13 +354,13 @@ export default class Sfyri3DInstance<T> {
     private handleResizeOnCamera(camera: Camera) {
         //PERSPECTIVE CAMERA
         if (camera instanceof PerspectiveCamera) {
-            camera.aspect = this.renderer.domElement.clientWidth / this.renderer.domElement.clientHeight;
+            camera.aspect = this._canvasWrapper.clientWidth / this._canvasWrapper.clientHeight;
             camera.updateProjectionMatrix();
         }
         //ORTOGRAPHIC CAMERA
         else if (camera instanceof OrthographicCamera) {
-            const width = this.renderer.domElement.clientWidth;
-            const height = this.renderer.domElement.clientHeight;
+            const width = this._canvasWrapper.clientWidth;
+            const height = this._canvasWrapper.clientHeight;
 
             const frustumHeight = camera.top - camera.bottom;
             const frustumWidth = frustumHeight * (width / height);
