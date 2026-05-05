@@ -16,7 +16,7 @@ describe('Sfyri3dEntity', () => {
     const material = new MeshBasicMaterial();
     const mesh = new Mesh(geometry, material);
 
-    const entity = new Sfyri3DEntity<Object3D>(mesh, 'test-object');
+    const entity = new Sfyri3DEntity(mesh, 'test-object');
     entity.preRenderingAnimationMethod = () => { };
     entity.preRenderingLogicMethod = () => { };
     entity.stateEntrySubscriptions = new Set();

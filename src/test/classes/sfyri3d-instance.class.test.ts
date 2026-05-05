@@ -114,7 +114,7 @@ describe('Sfyri3DInstance', () => {
 
     //SECTION - ENTITIES HANDLING
     it("adds a Light entity correctly", () => {
-        const lightEntity = new Sfyri3DEntity<DirectionalLight>(
+        const lightEntity = new Sfyri3DEntity(
             new DirectionalLight(),
             "test-light",
         );
@@ -136,7 +136,7 @@ describe('Sfyri3DInstance', () => {
 
     it("adds an Object3D entity correctly", () => {
         const mesh = new Mesh(new BoxGeometry(), new MeshBasicMaterial());
-        const objectEntity = new Sfyri3DEntity<Object3D>(
+        const objectEntity = new Sfyri3DEntity(
             mesh,
             "test-object",
         );
@@ -161,7 +161,7 @@ describe('Sfyri3DInstance', () => {
         const shadowDispose = vi.fn();
         (light as any).shadow = { map: { dispose: shadowDispose } };
 
-        const lightEntity = new Sfyri3DEntity<DirectionalLight>(
+        const lightEntity = new Sfyri3DEntity(
             light,
             "test-light",
         );
@@ -188,7 +188,7 @@ describe('Sfyri3DInstance', () => {
         const material = new MeshBasicMaterial();
         const mesh = new Mesh(geometry, material);
 
-        const objectEntity = new Sfyri3DEntity<Object3D>(
+        const objectEntity = new Sfyri3DEntity(
             mesh,
             "test-object",
         );
@@ -227,7 +227,7 @@ describe('Sfyri3DInstance', () => {
         const geometry = new BoxGeometry();
         const material = new MeshBasicMaterial();
         const mesh = new Mesh(geometry, material);
-        const objectEntity = new Sfyri3DEntity<Object3D>(
+        const objectEntity = new Sfyri3DEntity(
             mesh,
             "test-object",
         );

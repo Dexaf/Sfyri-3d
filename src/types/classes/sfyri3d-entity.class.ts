@@ -1,20 +1,18 @@
-import { Light, Object3D } from "three";
+import { Object3D, Light } from "three";
 import Sfyri3DInstance from "./sfyri3d-instance.class";
-
-export type Sfyri3DEntityTypes = Object3D | Light;
 
 /**
  * Entity used inside the instance to handle pipelines, subscriptions and memory.
  * To add and remove an entity from the istance pass only by the methods, this ensure that
  * everything keeps working.
  */
-export class Sfyri3DEntity<Sfyri3DEntityTypes> {
+export class Sfyri3DEntity {
     //SECTION - PROPS
     /** 
      * as it doesn't make much sense to change the enitre object in runtime there is free access to it
      * so there's no protection nor tested consequences.
     */
-    public object: Sfyri3DEntityTypes;
+    public object: Object3D | Light;
 
     private _name: string;
     public get name() {
@@ -33,11 +31,12 @@ export class Sfyri3DEntity<Sfyri3DEntityTypes> {
     //!SECTION - PROPS
 
     constructor(
-        object: Sfyri3DEntityTypes,
+        object: Object3D | Light,
         name: string,
         properties: any = null
     ) {
         this.object = object;
+        this.object.name = name;
         this._name = name;
         this.properties = properties;
     }

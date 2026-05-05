@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Sfyri3DStateEntry } from "../../types/classes/sfyri3d-state.class";
-import { BoxGeometry, MeshBasicMaterial, Mesh, Object3D } from "three";
+import { BoxGeometry, MeshBasicMaterial, Mesh } from "three";
 import { Sfyri3DEntity } from "../../types/classes/sfyri3d-entity.class";
 
 describe('Sfyri3DStateEntry', () => {
@@ -9,12 +9,12 @@ describe('Sfyri3DStateEntry', () => {
     const material = new MeshBasicMaterial();
     const mesh = new Mesh(geometry, material);
 
-    const entity = new Sfyri3DEntity<Object3D>(mesh, 'test-object');
+    const entity = new Sfyri3DEntity(mesh, 'test-object');
     entity.preRenderingAnimationMethod = () => { };
     entity.preRenderingLogicMethod = () => { };
     entity.stateEntrySubscriptions = new Set();
 
-    const entity2 = new Sfyri3DEntity<Object3D>(mesh, 'test-object-2');
+    const entity2 = new Sfyri3DEntity(mesh, 'test-object-2');
     entity.preRenderingAnimationMethod = () => { };
     entity.preRenderingLogicMethod = () => { };
     entity2.stateEntrySubscriptions = new Set();

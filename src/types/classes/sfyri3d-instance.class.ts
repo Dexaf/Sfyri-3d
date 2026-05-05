@@ -1,6 +1,6 @@
-import { Scene, Camera, WebGLRenderer, Timer, PerspectiveCamera, OrthographicCamera, Material, Object3D, Light, Mesh, DirectionalLight, PointLight, SpotLight } from "three";
+import { Scene, Camera, WebGLRenderer, Timer, PerspectiveCamera, OrthographicCamera, Material, Mesh, DirectionalLight, PointLight, SpotLight, Object3D, Light } from "three";
 import { isSfyri3DLightEntity, isSfyri3DObject3DEntity } from "../../utils/type-guards";
-import { Sfyri3DEntity, Sfyri3DEntityTypes } from "./sfyri3d-entity.class";
+import { Sfyri3DEntity } from "./sfyri3d-entity.class";
 import { assertSfyri3DState } from "../../utils/assertions";
 import { Sfyri3DStateEntry } from "./sfyri3d-state.class";
 
@@ -84,8 +84,8 @@ export default class Sfyri3DInstance<T> {
     public materials: Map<string, Material>[] = [];
 
     //NOTE - the setters are handled in the private methods 
-    private _objects3D: Map<string, Sfyri3DEntity<Object3D>> = new Map();
-    private _lights: Map<string, Sfyri3DEntity<Light>> = new Map();
+    private _objects3D: Map<string, Sfyri3DEntity> = new Map();
+    private _lights: Map<string, Sfyri3DEntity> = new Map();
     //!SECTION - ENTITIES PROPS
 
     // GLOBAL STATE
@@ -188,7 +188,7 @@ export default class Sfyri3DInstance<T> {
      * @param sfyri3DEntityType type of the searched entity
      * @returns the entity if found, else undefined.
      */
-    public getEntity(name: string, sfyri3DEntityType: 'light' | 'object3D'): Sfyri3DEntity<Object3D> | undefined {
+    public getEntity(name: string, sfyri3DEntityType: 'light' | 'object3D'): Sfyri3DEntity | undefined {
         switch (sfyri3DEntityType) {
             case 'light':
                 return this._lights.get(name);
@@ -202,16 +202,16 @@ export default class Sfyri3DInstance<T> {
      * @param entity entity to add with an object that either extends Light or Object3D
      * @summary this method add a valid Entities and registers the pipeline methods in the instance render pipeline
      */
-    public addEntity(entity: Sfyri3DEntity<Sfyri3DEntityTypes>) {
+    public addEntity(entity: Sfyri3DEntity) {
         //NOTE -    check Light before Object3D as Light actually extends Object3D, 
         //          reversing the if makes it always fall in object3D if entity is valid.
         //LIGHTS
-        if (isSfyri3DLightEntity(entity)) {
+        if (entity.object instanceof Light) {
             if (this._lights.has(entity.name)) throw new Error(`SFYRI3D - Sfyri3DInstance addEntity\n${entity.name} already exists in the lights entity's map.`);
             this._lights.set(entity.name, entity);
         }
         //OBJECTS 3D
-        else if (isSfyri3DObject3DEntity(entity)) {
+        else if (entity.object instanceof Object3D) {
             if (this._objects3D.has(entity.name)) throw new Error(`SFYRI3D - Sfyri3DInstance addEntity\n${entity.name} already exists in the objects3Ds entity's map.`);
             this._objects3D.set(entity.name, entity);
         }
