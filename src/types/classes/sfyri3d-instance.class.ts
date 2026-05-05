@@ -374,16 +374,19 @@ export default class Sfyri3DInstance<T> {
      * around the render step using the calculated framerate.
      * Auto calls the next step by itself. 
      */
-    private renderNextStep() {
+    private renderNextStep = () => {
         this._timer.update();
+
         if (this._timer.getElapsed() - this._timeSinceLastFrame >= this._timeToPassBetweenFrames) {
             this.prePipelineProcessesExecution();
             this.preRenderingAnimationMethodsExecution();
             this.preRenderingLogicMethodsExecution();
             this.postPipelineProcessesExecution();
+
             for (let i = 0; i < this.cameras.length; i++)
                 this.renderer.render(this.scene, this.cameras[i]);
         }
+
         this._timeSinceLastFrame = this._timer.getElapsed();
         this._animationFrameId = requestAnimationFrame(this.renderNextStep);
     }
