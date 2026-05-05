@@ -377,7 +377,7 @@ export default class Sfyri3DInstance<T> {
     private renderNextStep = () => {
         this._timer.update();
 
-        if (this._timer.getElapsed() - this._timeSinceLastFrame >= this._timeToPassBetweenFrames) {
+        if ((this._timer.getElapsed() - this._timeSinceLastFrame) >= this._timeToPassBetweenFrames) {
             this.prePipelineProcessesExecution();
             this.preRenderingAnimationMethodsExecution();
             this.preRenderingLogicMethodsExecution();
