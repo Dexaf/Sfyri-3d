@@ -8,7 +8,7 @@ export type Sfyri3DEntityTypes = Object3D | Light;
  * To add and remove an entity from the istance pass only by the methods, this ensure that
  * everything keeps working.
  */
-export default class Sfyri3DEntity<Sfyri3DEntityTypes> {
+export class Sfyri3DEntity<Sfyri3DEntityTypes> {
     //SECTION - PROPS
     /** 
      * as it doesn't make much sense to change the enitre object in runtime there is free access to it

@@ -1,5 +1,5 @@
 import { Light, Object3D } from "three";
-import Sfyri3DEntity, { Sfyri3DEntityTypes } from "../types/classes/sfyri3d-entity.class";
+import { Sfyri3DEntity, Sfyri3DEntityTypes } from "../types/classes/sfyri3d-entity.class";
 
 /** type guard for light Sfyri3DEntity*/
 export function isSfyri3DLightEntity(

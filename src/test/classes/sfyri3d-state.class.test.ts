@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Sfyri3DStateEntry } from "../../types/classes/sfyri3d-state.class";
 import { BoxGeometry, MeshBasicMaterial, Mesh, Object3D } from "three";
-import Sfyri3DEntity from "../../types/classes/sfyri3d-entity.class";
+import { Sfyri3DEntity } from "../../types/classes/sfyri3d-entity.class";
 
 describe('Sfyri3DStateEntry', () => {
     let stateEntry: Sfyri3DStateEntry<{ count: number; label: string }> | null = null;

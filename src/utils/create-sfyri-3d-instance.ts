@@ -11,7 +11,7 @@ import Sfyri3DInstance from "../types/classes/sfyri3d-instance.class";
  * @returns Sfyri3DInstance object WITH NON STARTED RENDER LOOP.
  * @returns 
  */
-export default function createSfyri3DInstance<T>(
+export function createSfyri3DInstance<T>(
     canvas: string | HTMLCanvasElement,
     camerasFactoryMethod: (container: HTMLElement) => Camera[],
     webGLRendererParameters: WebGLRendererParameters | null = null,

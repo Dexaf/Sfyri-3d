@@ -1,8 +1,8 @@
 import { BoxGeometry, DirectionalLight, Mesh, MeshBasicMaterial, Object3D, PerspectiveCamera } from "three";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import createSfyri3DInstance from '../../utils/create-sfyri-3d-instance';
 import Sfyri3DInstance from "../../types/classes/sfyri3d-instance.class";
-import Sfyri3DEntity from "../../types/classes/sfyri3d-entity.class";
+import { createSfyri3DInstance } from "../../utils/create-sfyri-3d-instance";
+import { Sfyri3DEntity } from "../../types/classes/sfyri3d-entity.class";
 
 describe('Sfyri3DInstance', () => {
     let sfyri3DInstance: Sfyri3DInstance<null> | null = null;

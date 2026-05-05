@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import Sfyri3DInstance from "../../types/classes/sfyri3d-instance.class";
 import { BoxGeometry, Mesh, MeshBasicMaterial, Object3D, PerspectiveCamera } from "three";
-import createSfyri3DInstance from '../../utils/create-sfyri-3d-instance';
-import Sfyri3DEntity from "../../types/classes/sfyri3d-entity.class";
 import { Sfyri3DStateEntry } from "../../types/classes/sfyri3d-state.class";
+import { Sfyri3DEntity } from "../../types/classes/sfyri3d-entity.class";
+import { createSfyri3DInstance } from "../../utils/create-sfyri-3d-instance";
 
 type keys = 'count';
 
