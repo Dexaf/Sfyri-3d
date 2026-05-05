@@ -329,7 +329,7 @@ export default class Sfyri3DInstance<T> {
      * with "post" it gets executed after those steps. For cleanliness purpose you can't have doubles in the same type group,
      * trying to do so will raise an error.
      */
-    public addProcessToPipeline(key: string, type: "pre" | "post", process: (sfyri3DInstance: Sfyri3DInstance<T>) => void) {
+    public addProcessToPipeline(key: string, type: "pre" | "post", process: (sfyri3DInstance: Sfyri3DInstance<T>, deltaTime: number) => void) {
         switch (type) {
             case "pre":
                 if (this._prePipelineProcesses.has(key)) throw new Error(`SFYRI3D - Sfyri3DInstance addProcessToPipeline\n${key} already exists in the pre pipeline processes's map.`)
