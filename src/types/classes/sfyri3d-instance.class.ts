@@ -1,5 +1,4 @@
 import { Scene, Camera, WebGLRenderer, Timer, PerspectiveCamera, OrthographicCamera, Material, Mesh, DirectionalLight, PointLight, SpotLight, Object3D, Light } from "three";
-import { isSfyri3DLightEntity, isSfyri3DObject3DEntity } from "../../utils/type-guards";
 import { Sfyri3DEntity } from "./sfyri3d-entity.class";
 import { assertSfyri3DState } from "../../utils/assertions";
 import { Sfyri3DStateEntry } from "./sfyri3d-state.class";
@@ -76,6 +75,19 @@ export default class Sfyri3DInstance<T> {
     private _animationFrameId: number | null = null;
     public get isRenderingOn(): boolean {
         return this._animationFrameId !== null;
+    }
+
+    /** 
+     * Tells if the render has been started at least with startRender 
+     * @note killRender resets it to false, stopRender doesn't
+    */
+    private _hasRenderingBeenStarted: boolean = false;
+    /** 
+     * Tells if the render has been started at least with startRender 
+     * @note killRender resets it to false, stopRender doesn't
+    */
+    public get hasRenderingBeenStarted(): boolean {
+        return this._hasRenderingBeenStarted;
     }
     //!SECTION - PROPS FOR ANIMATION LOOP
 
@@ -156,6 +168,7 @@ export default class Sfyri3DInstance<T> {
         this._timer = new Timer();
         //NOTE - we use connect to avoid timer to continue counting time when the page goes out of focus
         this._timer.connect(this.renderer.domElement.ownerDocument);
+        this._hasRenderingBeenStarted = true;
         this.renderNextStep();
         //!SECTION - START ANIMATION LOOP
     }
@@ -213,6 +226,8 @@ export default class Sfyri3DInstance<T> {
 
         this._renderer.dispose();
         this._renderer.forceContextLoss();
+
+        this._hasRenderingBeenStarted = false;
     }
     //!SECTION - RENDER HANDLING
 

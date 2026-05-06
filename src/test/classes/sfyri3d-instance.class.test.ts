@@ -43,6 +43,7 @@ describe('Sfyri3DInstance', () => {
         const spy = vi.spyOn(sfyri3DInstance! as any, 'renderNextStep');
         sfyri3DInstance!.startRender();
         expect(spy).toBeCalled();
+        expect(sfyri3DInstance!.hasRenderingBeenStarted).toBe(true);
     })
 
     it('should loop the rendering cycle', () => {
@@ -118,11 +119,13 @@ describe('Sfyri3DInstance', () => {
         );
 
         expect(sfyri3DInstance!["_animationFrameId"]).not.toBeNull();
+        expect(sfyri3DInstance!.hasRenderingBeenStarted).toBe(true);
 
         sfyri3DInstance!.stopRender();
-        
+
         expect(sfyri3DInstance!["_animationFrameId"]).toBeNull();
         expect(disconnectSpy).toHaveBeenCalled();
+        expect(sfyri3DInstance!.hasRenderingBeenStarted).toBe(true);
 
         cancelSpy.mockRestore();
     });
@@ -310,6 +313,8 @@ describe('Sfyri3DInstance', () => {
         sfyri3DInstance!.addEntity(objectEntity);
         sfyri3DInstance!.startRender();
 
+        expect(sfyri3DInstance!.hasRenderingBeenStarted).toBe(true);
+
         const geometryDisposeSpy = vi.spyOn(geometry, "dispose");
         const materialDisposeSpy = vi.spyOn(material, "dispose");
 
@@ -345,6 +350,7 @@ describe('Sfyri3DInstance', () => {
             "resize",
             expect.any(Function)
         );
+        expect(sfyri3DInstance!.hasRenderingBeenStarted).toBe(false);
 
         cancelSpy.mockRestore();
     })
