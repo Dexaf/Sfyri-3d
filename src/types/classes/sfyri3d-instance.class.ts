@@ -348,7 +348,7 @@ export default class Sfyri3DInstance<T> {
      * @returns true if deletes the process, false if there where no instance of the process in the group
      * of the type used as parameter.
      */
-    public removeProcessToPipeline(key: string, type: "pre" | "post"): boolean {
+    public removeProcessFromPipeline(key: string, type: "pre" | "post"): boolean {
         switch (type) {
             case "pre":
                 return this._prePipelineProcesses.delete(key);

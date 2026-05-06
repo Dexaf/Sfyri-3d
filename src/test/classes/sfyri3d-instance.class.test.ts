@@ -319,18 +319,18 @@ describe('Sfyri3DInstance', () => {
 
         //
         sfyri3DInstance!.addProcessToPipeline("test-pre", "pre", process);
-        const resultPre = sfyri3DInstance!.removeProcessToPipeline("test-pre", "pre");
+        const resultPre = sfyri3DInstance!.removeProcessFromPipeline("test-pre", "pre");
         expect(resultPre).toBe(true);
         expect((sfyri3DInstance! as any)._prePipelineProcesses.has("test-pre")).toBe(false);
 
         sfyri3DInstance!.addProcessToPipeline("test-post", "post", process);
-        const resultPost = sfyri3DInstance!.removeProcessToPipeline("test-post", "post");
+        const resultPost = sfyri3DInstance!.removeProcessFromPipeline("test-post", "post");
         expect(resultPost).toBe(true);
         expect((sfyri3DInstance! as any)._postPipelineProcesses.has("test-post")).toBe(false);
     });
 
     it("returns false when removing a non existing process", () => {
-        const result = sfyri3DInstance!.removeProcessToPipeline("not-existing", "pre");
+        const result = sfyri3DInstance!.removeProcessFromPipeline("not-existing", "pre");
 
         expect(result).toBe(false);
     });
