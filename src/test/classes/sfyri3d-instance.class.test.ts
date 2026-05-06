@@ -107,16 +107,78 @@ describe('Sfyri3DInstance', () => {
     })
 
     it("cancels the animation frame if rendering", () => {
+        sfyri3DInstance!.startRender();
+
         // mock cancelAnimationFrame
         const cancelSpy = vi.spyOn(global, "cancelAnimationFrame").mockImplementation(() => { });
+        //check if timer disconnected
+        const disconnectSpy = vi.spyOn(
+            (sfyri3DInstance as any)._timer,
+            "disconnect"
+        );
 
-        sfyri3DInstance!.startRender();
         expect(sfyri3DInstance!["_animationFrameId"]).not.toBeNull();
 
         sfyri3DInstance!.stopRender();
+        
         expect(sfyri3DInstance!["_animationFrameId"]).toBeNull();
+        expect(disconnectSpy).toHaveBeenCalled();
 
         cancelSpy.mockRestore();
+    });
+
+    it("throws if stopRender is called while not rendering", () => {
+        expect(() => {
+            sfyri3DInstance!.stopRender();
+        }).toThrow(
+            "SFYRI3D - Sfyri3DInstance stopRender\nThis instance is not rendering."
+        );
+    });
+
+    it("resumes rendering correctly when render is stopped", () => {
+        //start to create instance of timer
+        sfyri3DInstance!.startRender();
+
+        //check if timer resumed
+        const connectSpy = vi.spyOn(
+            (sfyri3DInstance as any)._timer,
+            "connect"
+        );
+        //check if timer updated to avoid delta time jumps
+        const updateSpy = vi.spyOn(
+            (sfyri3DInstance as any)._timer,
+            "update"
+        );
+        //check if next rendering step called
+        const renderNextStepSpy = vi.spyOn(
+            sfyri3DInstance! as any,
+            "renderNextStep"
+        );
+
+        //stop render
+        sfyri3DInstance!.stopRender();
+
+
+        expect(sfyri3DInstance!["_animationFrameId"]).toBeNull();
+
+        sfyri3DInstance!.resumeRender();
+
+        expect(connectSpy).toHaveBeenCalledWith(
+            sfyri3DInstance!.renderer.domElement.ownerDocument
+        );
+        expect(updateSpy).toHaveBeenCalled();
+        expect(renderNextStepSpy).toHaveBeenCalled();
+        expect(sfyri3DInstance!["_animationFrameId"]).not.toBeNull();
+    });
+
+    it("throws if resumeRender is called while already rendering", () => {
+        sfyri3DInstance!.startRender();
+
+        expect(() => {
+            sfyri3DInstance!.resumeRender();
+        }).toThrow(
+            "SFYRI3D - Sfyri3DInstance resumeRender\nThis instance is still rendering."
+        );
     });
     //!SECTION - RENDER NEXT STEP
 

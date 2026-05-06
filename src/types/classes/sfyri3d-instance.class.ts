@@ -168,7 +168,21 @@ export default class Sfyri3DInstance<T> {
         if (this._animationFrameId) {
             cancelAnimationFrame(this._animationFrameId);
             this._animationFrameId = null;
+            this._timer.disconnect();
         } else throw new Error(`SFYRI3D - Sfyri3DInstance stopRender\nThis instance is not rendering.`);
+    }
+
+    /**
+     * @throws This method can throw error.
+     * @summary Resume the render only if it's off, else throws an error.
+     */
+    public resumeRender() {
+        if (this._animationFrameId)
+            throw new Error(`SFYRI3D - Sfyri3DInstance resumeRender\nThis instance is still rendering.`)
+        this._timer.connect(this.renderer.domElement.ownerDocument);
+        //ensure no delta time jump
+        this._timer.update();
+        this.renderNextStep();
     }
 
     /**
