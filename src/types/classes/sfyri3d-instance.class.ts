@@ -164,7 +164,7 @@ export default class Sfyri3DInstance<T> {
                     this.renderer.setSize(this._canvasWrapper.clientWidth, this._canvasWrapper.clientHeight, this.shouldPropagateResizeToStyle);
                 }
             }
-            window.addEventListener('resize', this._resizeEventFunctionRef);
+            this._canvasWrapper.addEventListener('resize', this._resizeEventFunctionRef);
         }
 
         //FPS TARGET HANDLING
