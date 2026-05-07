@@ -30,7 +30,8 @@ describe('CreateSfyri3DInstance', () => {
             canvasWrapper,
             (container) => [new PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000)],
             null,
-            null
+            null,
+            false
         );
 
         //With right input it should be not null
@@ -45,7 +46,8 @@ describe('CreateSfyri3DInstance', () => {
             "#mock-canvas-wrapper",
             (container) => [camera!],
             null,
-            null
+            null,
+            false
         );
 
         expect(instance).not.toBe(null);
@@ -59,7 +61,8 @@ describe('CreateSfyri3DInstance', () => {
             null as unknown as HTMLDivElement,
             () => [camera!],
             null,
-            null
+            null,
+            false
         )).toThrow();
     });
 
@@ -69,7 +72,8 @@ describe('CreateSfyri3DInstance', () => {
             '#non-existent-canvas-wrapper',
             () => [camera!],
             null,
-            null
+            null,
+            false
         )).toThrow();
     });
 
@@ -79,7 +83,8 @@ describe('CreateSfyri3DInstance', () => {
             canvasWrapper,
             () => [],
             null,
-            null
+            null,
+            false
         )).toThrow();
     });
     //!SECTION - STOP BREAKING BEHAVIOUR

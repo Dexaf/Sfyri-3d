@@ -25,10 +25,15 @@ import { Sfyri3DStateEntry } from "./sfyri3d-state.class";
  */
 export default class Sfyri3DInstance<T> {
     //SECTION - GENERICS
+    /** render's canvas's wrapper ref*/
     private _canvasWrapper: HTMLElement;
+    /** render's canvas's wrapper ref*/
     public get canvasWrapper(): HTMLElement {
         return this._canvasWrapper;
     }
+
+    /** checked on set size while resizing to propagate resize or not from renderer*/
+    public shouldPropagateResizeToStyle: boolean;
     //!SECTION - GENERICS
 
     //SECTION - THREEJS PROPS
@@ -124,11 +129,13 @@ export default class Sfyri3DInstance<T> {
     //!SECTION - SFYRI3D PROPS
 
     //CONSTRUCTOR
-    constructor(scene: Scene, renderer: WebGLRenderer, cameras: Camera[], canvasWrapper: HTMLElement, initState: any) {
+    constructor(scene: Scene, renderer: WebGLRenderer, cameras: Camera[], initState: any, canvasWrapper: HTMLElement, shouldPropagateResizeToStyle: boolean) {
         //passed props assign
         this._canvasWrapper = canvasWrapper;
         this._scene = scene;
         this._renderer = renderer;
+        this.shouldPropagateResizeToStyle = shouldPropagateResizeToStyle;
+        
         if (cameras.length === 0)
             throw new Error(`SFYRI3D - Sfyri3DInstance Constructor\nNo camera where passed to the instance you wanted to create.`);
 
@@ -154,7 +161,7 @@ export default class Sfyri3DInstance<T> {
                     this.handleResizeOnCamera(camera);
 
                     //UPDATE RENDER
-                    this.renderer.setSize(this._canvasWrapper.clientWidth, this._canvasWrapper.clientHeight, true);
+                    this.renderer.setSize(this._canvasWrapper.clientWidth, this._canvasWrapper.clientHeight, this.shouldPropagateResizeToStyle);
                 }
             }
             window.addEventListener('resize', this._resizeEventFunctionRef);

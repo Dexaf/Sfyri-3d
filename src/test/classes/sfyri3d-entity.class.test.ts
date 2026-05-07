@@ -43,7 +43,8 @@ describe('Sfyri3dEntity', () => {
             canvasWrapper,
             (container) => [new PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000)],
             null,
-            state
+            state,
+            false
         );
     });
 

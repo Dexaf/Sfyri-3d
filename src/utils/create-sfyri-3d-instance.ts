@@ -16,7 +16,8 @@ export function createSfyri3DInstance<T>(
     canvasWrapper: string | HTMLElement,
     camerasFactoryMethod: (container: HTMLElement) => Camera[],
     webGLRendererParameters: WebGLRendererParameters | null = null,
-    initialState: T
+    initialState: T,
+    shouldPropagateResizeToStyle: boolean
 ): Sfyri3DInstance<T> {
 
     //SECTION - GET CANVAS
@@ -56,8 +57,8 @@ export function createSfyri3DInstance<T>(
         ...webGLRendererParameters,
         canvas: sceneCanvas
     });
-    renderer.setSize(canvasWrapperEl.clientWidth, canvasWrapperEl.clientHeight);
+    renderer.setSize(canvasWrapperEl.clientWidth, canvasWrapperEl.clientHeight, shouldPropagateResizeToStyle);
     const scene = new Scene();
 
-    return new Sfyri3DInstance(scene, renderer, cameras, canvasWrapperEl, initialState);
+    return new Sfyri3DInstance(scene, renderer, cameras, initialState, canvasWrapperEl, shouldPropagateResizeToStyle);
 }
