@@ -24,15 +24,6 @@ import { Sfyri3DStateEntry } from "./sfyri3d-state.class";
     NOTE: the key of the obj have to match the passed key in the constructor of Sfyri3DStateEntry
  */
 export default class Sfyri3DInstance<T> {
-    //SECTION - GENERICS
-    /** render's canvas's wrapper ref*/
-    private _canvasWrapper: HTMLElement;
-    /** render's canvas's wrapper ref*/
-    public get canvasWrapper(): HTMLElement {
-        return this._canvasWrapper;
-    }
-    //!SECTION - GENERICS
-
     //SECTION - THREEJS PROPS
     private _scene: Scene;
     public get scene(): Scene {
@@ -123,9 +114,8 @@ export default class Sfyri3DInstance<T> {
     //!SECTION - SFYRI3D PROPS
 
     //CONSTRUCTOR
-    constructor(scene: Scene, renderer: WebGLRenderer, cameras: Camera[], initState: any, canvasWrapper: HTMLElement) {
+    constructor(scene: Scene, renderer: WebGLRenderer, cameras: Camera[], initState: any) {
         //passed props assign
-        this._canvasWrapper = canvasWrapper;
         this._scene = scene;
         this._renderer = renderer;
 

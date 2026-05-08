@@ -13,7 +13,6 @@ import Sfyri3DInstance from "../types/classes/sfyri3d-instance.class";
  */
 export function createSfyri3DInstance<T>(
     canvas: string | HTMLCanvasElement,
-    canvasWrapper: string | HTMLElement,
     camerasFactoryMethod: (container: HTMLElement) => Camera[],
     webGLRendererParameters: WebGLRendererParameters | null = null,
     initialState: T,
@@ -31,33 +30,19 @@ export function createSfyri3DInstance<T>(
         if (!sceneCanvas)
             throw new Error(`SFYRI3D - CreateSfyriInstance\nCanvas with selector ${canvas} not found.`);
     }
-    //!SECTION - GET CANVAS
-
-    //SECTION - GET CANVAS CONTAINER
-    let canvasWrapperEl: HTMLElement | null = null;
-    //NOTE - null / undefined check for javascript
-    if (!canvasWrapper)
-        throw new Error(`SFYRI3D - CreateSfyriInstance\nNo query selector string for the canvas wrapper element or existing canvas wrapper element ref was passed.`);
-    if (canvasWrapper instanceof HTMLElement)
-        canvasWrapperEl = canvasWrapper;
-    else {
-        canvasWrapperEl = document.querySelector(canvasWrapper);
-        if (!canvasWrapperEl)
-            throw new Error(`SFYRI3D - CreateSfyriInstance\nCanvas wrapper with selector ${canvasWrapper} not found.`);
-    }
-    //!SECTION - GET CANVAS CONTAINER
+    //!SECTION - GET CANVA
 
     //Create the cameras with the method passed
     /* NOTE:    this allow us to make the user work as if they 
                 already know the sizes of the scene canvas
     */
-    const cameras = camerasFactoryMethod(canvasWrapperEl!);
+    const cameras = camerasFactoryMethod(sceneCanvas!);
     const renderer = new WebGLRenderer({
         ...webGLRendererParameters,
         canvas: sceneCanvas
     });
-    renderer.setSize(canvasWrapperEl.clientWidth, canvasWrapperEl.clientHeight, false);
+    renderer.setSize(sceneCanvas.clientWidth, sceneCanvas.clientHeight, false);
     const scene = new Scene();
 
-    return new Sfyri3DInstance(scene, renderer, cameras, initialState, canvasWrapperEl);
+    return new Sfyri3DInstance(scene, renderer, cameras, initialState);
 }

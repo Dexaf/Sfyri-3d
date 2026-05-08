@@ -14,15 +14,8 @@ describe('Sfyri3DInstance', () => {
         canvas.height = 600;
         document.body.appendChild(canvas);
 
-        const canvasWrapper = document.createElement('div') as HTMLDivElement;
-        canvasWrapper.id = "mock-canvas-wrapper"
-        canvasWrapper.style.width = '800px';
-        canvasWrapper.style.height = '600px';
-        document.body.appendChild(canvasWrapper);
-
         sfyri3DInstance = createSfyri3DInstance(
             canvas,
-            canvasWrapper,
             (container) => [new PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000)],
             null,
             null,
