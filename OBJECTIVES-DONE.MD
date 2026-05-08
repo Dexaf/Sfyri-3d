@@ -1,5 +1,4 @@
 - create scene 
-    - handling of resize
     - fps manual handling with dynamic cap modification
 - instant garbage collection + control on soft deletes
 - tests

@@ -31,9 +31,6 @@ export default class Sfyri3DInstance<T> {
     public get canvasWrapper(): HTMLElement {
         return this._canvasWrapper;
     }
-
-    /** checked on set size while resizing to propagate resize or not from renderer*/
-    public shouldPropagateResizeToStyle: boolean;
     //!SECTION - GENERICS
 
     //SECTION - THREEJS PROPS
@@ -96,9 +93,6 @@ export default class Sfyri3DInstance<T> {
     }
     //!SECTION - PROPS FOR ANIMATION LOOP
 
-    /** holds the resize function ref passed to the addEventListener so we can remove it later */
-    private _resizeEventFunctionRef: (() => void) | null = null;
-
     //SECTION - ENTITIES PROPS
     /** A global map to access materials across the instance
      * @reminder if you delete an entity that's an Object3D with a material, using the remove entity method
@@ -129,13 +123,12 @@ export default class Sfyri3DInstance<T> {
     //!SECTION - SFYRI3D PROPS
 
     //CONSTRUCTOR
-    constructor(scene: Scene, renderer: WebGLRenderer, cameras: Camera[], initState: any, canvasWrapper: HTMLElement, shouldPropagateResizeToStyle: boolean) {
+    constructor(scene: Scene, renderer: WebGLRenderer, cameras: Camera[], initState: any, canvasWrapper: HTMLElement) {
         //passed props assign
         this._canvasWrapper = canvasWrapper;
         this._scene = scene;
         this._renderer = renderer;
-        this.shouldPropagateResizeToStyle = shouldPropagateResizeToStyle;
-        
+
         if (cameras.length === 0)
             throw new Error(`SFYRI3D - Sfyri3DInstance Constructor\nNo camera where passed to the instance you wanted to create.`);
 
@@ -150,22 +143,7 @@ export default class Sfyri3DInstance<T> {
     //SECTION - PUBLIC METHODS
     //SECTION - RENDER HANDLING
     public startRender(
-        enableResize: boolean = true,
         targetFps: number | null = null) {
-        //ENABLE RESIZE HANDLING
-        if (enableResize) {
-            this._resizeEventFunctionRef = () => {
-                for (let i = 0; i < this.cameras.length; i++) {
-                    const camera = this.cameras[i];
-                    //UPDATE CAMERA
-                    this.handleResizeOnCamera(camera);
-
-                    //UPDATE RENDER
-                    this.renderer.setSize(this._canvasWrapper.clientWidth, this._canvasWrapper.clientHeight, this.shouldPropagateResizeToStyle);
-                }
-            }
-            this._canvasWrapper.addEventListener('resize', this._resizeEventFunctionRef);
-        }
 
         //FPS TARGET HANDLING
         if (targetFps)
@@ -222,9 +200,6 @@ export default class Sfyri3DInstance<T> {
         this._objects3D.forEach(o3d => this.removeEntity(o3d.name, "object3D", shouldDisposeMaterials));
         this._lights.forEach(light => this.removeEntity(light.name, "light"));
         this._timer?.disconnect();
-
-        if (this._resizeEventFunctionRef)
-            window.removeEventListener('resize', this._resizeEventFunctionRef);
 
         this._prePipelineProcesses.clear();
         this._postPipelineProcesses.clear();
@@ -396,35 +371,6 @@ export default class Sfyri3DInstance<T> {
     //!SECTION - PUBLIC METHODS
 
     //SECTION - PRIVATE METHODS
-    /**
-     * @param camera camera where we need to adjust the params according to new renderer dom element size
-     */
-    private handleResizeOnCamera(camera: Camera) {
-        //PERSPECTIVE CAMERA
-        if (camera instanceof PerspectiveCamera) {
-            camera.aspect = this._canvasWrapper.clientWidth / this._canvasWrapper.clientHeight;
-            camera.updateProjectionMatrix();
-        }
-        //ORTOGRAPHIC CAMERA
-        else if (camera instanceof OrthographicCamera) {
-            const width = this._canvasWrapper.clientWidth;
-            const height = this._canvasWrapper.clientHeight;
-
-            const frustumHeight = camera.top - camera.bottom;
-            const frustumWidth = frustumHeight * (width / height);
-
-            const centerX = (camera.left + camera.right) / 2;
-            const centerY = (camera.top + camera.bottom) / 2;
-
-            camera.left = centerX - frustumWidth / 2;
-            camera.right = centerX + frustumWidth / 2;
-            camera.top = centerY + frustumHeight / 2;
-            camera.bottom = centerY - frustumHeight / 2;
-
-            camera.updateProjectionMatrix();
-        }
-    }
-
     /**
      * Handles all the processes pipeline/lifecycle
      * around the render step using the calculated framerate.

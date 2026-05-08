@@ -26,7 +26,6 @@ describe('Sfyri3DInstance', () => {
             (container) => [new PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000)],
             null,
             null,
-            false
         );
     });
 
@@ -347,10 +346,6 @@ describe('Sfyri3DInstance', () => {
 
         expect(timerDisconnectSpy).toHaveBeenCalled();
 
-        expect(removeEventListenerSpy).toHaveBeenCalledWith(
-            "resize",
-            expect.any(Function)
-        );
         expect(sfyri3DInstance!.hasRenderingBeenStarted).toBe(false);
 
         cancelSpy.mockRestore();

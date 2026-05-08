@@ -31,7 +31,6 @@ describe('CreateSfyri3DInstance', () => {
             (container) => [new PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000)],
             null,
             null,
-            false
         );
 
         //With right input it should be not null
@@ -47,7 +46,6 @@ describe('CreateSfyri3DInstance', () => {
             (container) => [camera!],
             null,
             null,
-            false
         );
 
         expect(instance).not.toBe(null);
@@ -62,7 +60,6 @@ describe('CreateSfyri3DInstance', () => {
             () => [camera!],
             null,
             null,
-            false
         )).toThrow();
     });
 
@@ -73,7 +70,6 @@ describe('CreateSfyri3DInstance', () => {
             () => [camera!],
             null,
             null,
-            false
         )).toThrow();
     });
 
@@ -84,7 +80,6 @@ describe('CreateSfyri3DInstance', () => {
             () => [],
             null,
             null,
-            false
         )).toThrow();
     });
     //!SECTION - STOP BREAKING BEHAVIOUR
