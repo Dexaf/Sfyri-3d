@@ -48,12 +48,12 @@ export class Sfyri3DEntity {
      * The user inputs will be updated when reaching this method.
      * There is NO order in calling sequence inside this category.
     */
-    public preRenderingAnimationMethod: ((sfyri3DInstanceRef: Sfyri3DInstance<any>) => void) | null = null;
+    public preRenderingAnimationMethod: ((sfyri3DInstanceRef: Sfyri3DInstance<any>, deltaTime: number) => void) | null = null;
     /** 
      * Should be used to handle logic stuff. 
      * The user inputs will be updated when reaching this method.
      * There is NO order in calling sequence inside this category.
      */
-    public preRenderingLogicMethod: ((sfyri3DInstanceRef: Sfyri3DInstance<any>) => void) | null = null;
+    public preRenderingLogicMethod: ((sfyri3DInstanceRef: Sfyri3DInstance<any>, deltaTime: number) => void) | null = null;
     //!SECTION - PUBLIC METHODS
 }
