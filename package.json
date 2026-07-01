@@ -4,7 +4,7 @@
     "type": "git",
     "url": "git+https://github.com/Dexaf/Sfyri-3d.git"
   },
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "micro framework to make threejs faster by code",
   "license": "UNLICENSED",
   "author": "Federico Pisa - Sagitauros",
