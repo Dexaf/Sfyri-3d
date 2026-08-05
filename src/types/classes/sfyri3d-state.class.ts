@@ -76,8 +76,8 @@ export class Sfyri3DStateEntry<T> {
      * @summary updates the value of the entry and if shouldSendUpdate is true and at least someone is
      * subscribed it sends the update
      */
-    public setValue(value: Partial<T>, shouldSendUpdate: boolean = true) {
-        this._value = { ...this._value, ...value };
+    public setValue(value: T, shouldSendUpdate: boolean = true) {
+        this._value = value;
         if (this._subscribed && this._subscribed.size > 0 && shouldSendUpdate)
             this._subscribed.forEach(s => s());
     }

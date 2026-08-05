@@ -1,4 +1,4 @@
-import { Scene, Camera, WebGLRenderer, Timer, PerspectiveCamera, OrthographicCamera, Material, Mesh, DirectionalLight, PointLight, SpotLight, Object3D, Light } from "three";
+import { Scene, Camera, WebGLRenderer, Timer, Material, Mesh, DirectionalLight, PointLight, SpotLight, Object3D, Light } from "three";
 import { Sfyri3DEntity } from "./sfyri3d-entity.class";
 import { assertSfyri3DState } from "../../utils/assertions";
 import { Sfyri3DStateEntry } from "./sfyri3d-state.class";
