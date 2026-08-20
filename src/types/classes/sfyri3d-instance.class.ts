@@ -2,6 +2,7 @@ import { Scene, Camera, WebGLRenderer, Timer, Material, Mesh, DirectionalLight, 
 import { Sfyri3DEntity } from "./sfyri3d-entity.class";
 import { assertSfyri3DState } from "../../utils/assertions";
 import { Sfyri3DStateEntry } from "./sfyri3d-state.class";
+import Stats from "stats.js";
 
 /**
  * Entry point of the Sfyri 3D Framework handling system.
@@ -39,6 +40,9 @@ export default class Sfyri3DInstance<T> {
     public get cameras(): Camera[] {
         return this._cameras;
     }
+
+    private stats = new Stats();
+    private showRenderStat = false;
     //!SECTION - THREEJS PROPS
 
     //SECTION - SFYRI3D PROPS
@@ -133,7 +137,8 @@ export default class Sfyri3DInstance<T> {
     //SECTION - PUBLIC METHODS
     //SECTION - RENDER HANDLING
     public startRender(
-        targetFps: number | null = null) {
+        targetFps: number | null = null,
+        showRenderStat: boolean = false) {
 
         //FPS TARGET HANDLING
         if (targetFps)
@@ -144,7 +149,17 @@ export default class Sfyri3DInstance<T> {
         //NOTE - we use connect to avoid timer to continue counting time when the page goes out of focus
         this._timer.connect(this.renderer.domElement.ownerDocument);
         this._hasRenderingBeenStarted = true;
-        this.renderNextStep();
+
+        if (showRenderStat) {
+            this.showRenderStat = true;
+            document.body.appendChild(this.stats.dom);
+            this.renderNextStepWithStat();
+        } else {
+            if (this.showRenderStat)
+                document.body.removeChild(this.stats.dom);
+            this.showRenderStat = false;
+            this.renderNextStep();
+        }
         //!SECTION - START ANIMATION LOOP
     }
 
@@ -157,6 +172,8 @@ export default class Sfyri3DInstance<T> {
             cancelAnimationFrame(this._animationFrameId);
             this._animationFrameId = null;
             this._timer.disconnect();
+            if (this.showRenderStat)
+                document.body.removeChild(this.stats.dom);
         } else throw new Error(`SFYRI3D - Sfyri3DInstance stopRender\nThis instance is not rendering.`);
     }
 
@@ -164,13 +181,23 @@ export default class Sfyri3DInstance<T> {
      * @throws This method can throw error.
      * @summary Resume the render only if it's off, else throws an error.
      */
-    public resumeRender() {
+    public resumeRender(showRenderStat: boolean = false) {
         if (this._animationFrameId)
             throw new Error(`SFYRI3D - Sfyri3DInstance resumeRender\nThis instance is still rendering.`)
         this._timer.connect(this.renderer.domElement.ownerDocument);
         //ensure no delta time jump
         this._timer.update();
-        this.renderNextStep();
+
+        if (showRenderStat) {
+            this.showRenderStat = true;
+            document.body.appendChild(this.stats.dom);
+            this.renderNextStepWithStat();
+        } else {
+            if (this.showRenderStat)
+                document.body.removeChild(this.stats.dom);
+            this.showRenderStat = false;
+            this.renderNextStep();
+        }
     }
 
     /**
@@ -385,6 +412,44 @@ export default class Sfyri3DInstance<T> {
         }
 
         this._animationFrameId = requestAnimationFrame(this.renderNextStep);
+    }
+
+    /**
+     * Handles all the processes pipeline/lifecycle
+     * around the render step using the calculated framerate.
+     * Auto calls the next step by itself. 
+     * 
+     * Show stat about render
+     */
+    private renderNextStepWithStat = () => {
+        this._timer.update();
+
+        const currentTime = this._timer.getElapsed() * 1000;
+        const timeSinceLastRender = currentTime - this._timeSinceLastFrame;
+
+        if (timeSinceLastRender >= this._timeToPassBetweenFrames) {
+            this.stats.begin();
+
+            this._timeSinceLastFrame = 0;
+            const deltaTime = this._timer.getDelta();
+            this.prePipelineProcessesExecution(deltaTime);
+            this.preRenderingAnimationMethodsExecution(deltaTime);
+            this.preRenderingLogicMethodsExecution(deltaTime);
+            this.postPipelineProcessesExecution(deltaTime);
+
+            for (let i = 0; i < this.cameras.length; i++)
+                this.renderer.render(this.scene, this.cameras[i]);
+
+            this.stats.end();
+            console.info(
+                'calls', this.renderer.info.render.calls,
+                'triangles', this.renderer.info.render.triangles,
+                'geometries', this.renderer.info.memory.geometries,
+                'textures', this.renderer.info.memory.textures
+            )
+        }
+
+        this._animationFrameId = requestAnimationFrame(this.renderNextStepWithStat);
     }
 
     //SECTION - RENDER STEP LIFECYCLE METHODS

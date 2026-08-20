@@ -41,7 +41,7 @@ describe('Sfyri3DStateEntry', () => {
         expect(stateEntry!["_subscribed"]).not.toBeNull();
         expect(stateEntry!["_subscribed"]!.size).toBe(1);
 
-        stateEntry!.setValue({ count: 1 });
+        stateEntry!.setValue({ count: 1, label: 'count' });
 
         expect(spy).toBeCalledTimes(1);
     });
@@ -55,7 +55,7 @@ describe('Sfyri3DStateEntry', () => {
 
         expect(stateEntry!["_subscribed"]!.size).toBe(2);
 
-        stateEntry!.setValue({ count: 10 });
+        stateEntry!.setValue({ count: 10, label: 'count' });
 
         expect(spy1).toBeCalledTimes(1);
         expect(spy2).toBeCalledTimes(1);
@@ -66,7 +66,7 @@ describe('Sfyri3DStateEntry', () => {
 
         stateEntry!.subscribe(entity.name, spy, entity.stateEntrySubscriptions!);
 
-        stateEntry!.setValue({ count: 5 }, false);
+        stateEntry!.setValue({ count: 5, label: 'count' }, false);
 
         expect(spy).not.toBeCalled();
     });
@@ -75,7 +75,7 @@ describe('Sfyri3DStateEntry', () => {
         const spy = vi.spyOn(stateEntry!, 'sendUpdate');
         expect(stateEntry!["_subscribed"]).toBeNull();
 
-        stateEntry!.setValue({ count: 3 });
+        stateEntry!.setValue({ count: 3, label: 'count' });
 
         expect(spy).not.toBeCalled();
     });
@@ -87,8 +87,8 @@ describe('Sfyri3DStateEntry', () => {
 
         stateEntry!.subscribe(entity.name, spy, entity.stateEntrySubscriptions!);
 
-        stateEntry!.setValue({ count: 1 });
-        stateEntry!.setValue({ count: 2 });
+        stateEntry!.setValue({ count: 1, label: 'count' });
+        stateEntry!.setValue({ count: 2, label: 'count' });
 
         expect(spy).toBeCalledTimes(2);
 
@@ -111,7 +111,7 @@ describe('Sfyri3DStateEntry', () => {
         expect(result).toBe(true);
         expect(stateEntry!["_subscribed"]).toBeNull();
 
-        stateEntry!.setValue({ count: 100 });
+        stateEntry!.setValue({ count: 100, label: 'count' });
 
         expect(spy).not.toBeCalled();
     });
