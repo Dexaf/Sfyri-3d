@@ -83,7 +83,7 @@ export class Sfyri3DStateEntry<T> {
     }
 
     /**
-     * @summary If shouldSendUpdate at least someone is subscribed it sends the update
+     * @summary force a call on subscribed without updating the values
      */
     public sendUpdate() {
         if (this._subscribed && this._subscribed.size > 0)
