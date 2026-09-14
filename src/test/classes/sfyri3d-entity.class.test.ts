@@ -48,7 +48,7 @@ describe('Sfyri3dEntity', () => {
         sfyri3DInstance!.state.count.sendUpdate();
         expect(spy).toBeCalledTimes(1);
 
-        sfyri3DInstance!.removeEntity(entity.name, "object3D");
+        sfyri3DInstance!.removeEntity(entity.name);
         sfyri3DInstance!.state.count.sendUpdate();
         expect(spy).not.toBeCalledTimes(2);
     })

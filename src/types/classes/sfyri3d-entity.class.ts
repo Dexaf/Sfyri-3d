@@ -1,4 +1,4 @@
-import { Object3D, Light } from "three";
+import { Object3D } from "three";
 import Sfyri3DInstance from "./sfyri3d-instance.class";
 
 /**
@@ -12,7 +12,7 @@ export class Sfyri3DEntity {
      * as it doesn't make much sense to change the enitre object in runtime there is free access to it
      * so there's no protection nor tested consequences.
     */
-    public object: Object3D | Light;
+    public object: Object3D;
 
     private _name: string;
     public get name() {
@@ -31,7 +31,7 @@ export class Sfyri3DEntity {
     //!SECTION - PROPS
 
     constructor(
-        object: Object3D | Light,
+        object: Object3D,
         name: string,
         properties: any = null
     ) {

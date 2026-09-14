@@ -194,7 +194,7 @@ describe('Sfyri3DInstance', () => {
         sfyri3DInstance!.addEntity(lightEntity);
 
         //expected status of entity
-        expect(sfyri3DInstance!.getEntity(lightEntity.name, "light")).not.toBe(undefined);
+        expect(sfyri3DInstance!.getEntity(lightEntity.name)).not.toBe(undefined);
         expect(sfyri3DInstance!.scene.children.includes(lightEntity.object)).toBe(true);
         expect(sfyri3DInstance!['_preRenderingAnimationMethods'].size).toBe(1);
         expect(sfyri3DInstance!['_preRenderingLogicMethods'].size).toBe(1);
@@ -216,7 +216,7 @@ describe('Sfyri3DInstance', () => {
         sfyri3DInstance!.addEntity(objectEntity);
 
         //expected status of entity
-        expect(sfyri3DInstance!.getEntity(objectEntity.name, "object3D")).not.toBe(undefined);
+        expect(sfyri3DInstance!.getEntity(objectEntity.name)).not.toBe(undefined);
         expect(sfyri3DInstance!.scene.children.includes(objectEntity.object)).toBe(true);
         expect(sfyri3DInstance!['_preRenderingAnimationMethods'].size).toBe(1);
         expect(sfyri3DInstance!['_preRenderingLogicMethods'].size).toBe(1);
@@ -240,11 +240,11 @@ describe('Sfyri3DInstance', () => {
         expect(sfyri3DInstance!['_preRenderingLogicMethods'].size).toBe(1);
 
         //check after removing that everything is disposed
-        const result = sfyri3DInstance!.removeEntity("test-light", "light");
+        const result = sfyri3DInstance!.removeEntity("test-light");
         expect(sfyri3DInstance!['_preRenderingAnimationMethods'].size).toBe(0);
         expect(sfyri3DInstance!['_preRenderingLogicMethods'].size).toBe(0);
         expect(result).toBe(true);
-        expect(sfyri3DInstance!["_lights"].has("test-light")).toBe(false);
+        expect(sfyri3DInstance!["_objects3D"].has("test-light")).toBe(false);
         expect(sfyri3DInstance!.scene.children.includes(light)).toBe(false);
         expect(shadowDispose).toHaveBeenCalled();
     });
@@ -270,7 +270,7 @@ describe('Sfyri3DInstance', () => {
         const materialDisposeSpy = vi.spyOn(material, "dispose");
 
         //check after removing that everything is disposed
-        const result = sfyri3DInstance!.removeEntity("test-object", "object3D", true);
+        const result = sfyri3DInstance!.removeEntity("test-object", true);
         expect(sfyri3DInstance!['_preRenderingAnimationMethods'].size).toBe(0);
         expect(sfyri3DInstance!['_preRenderingLogicMethods'].size).toBe(0);
         expect(result).toBe(true);
@@ -281,7 +281,7 @@ describe('Sfyri3DInstance', () => {
     });
 
     it("returns false if Object3D does not exist", () => {
-        const result = sfyri3DInstance!.removeEntity("not-existing", "object3D");
+        const result = sfyri3DInstance!.removeEntity("not-existing");
         expect(result).toBe(false);
     });
     //!SECTION - ENTITIES HANDLING

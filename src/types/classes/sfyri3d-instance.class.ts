@@ -1,4 +1,4 @@
-import { Scene, Camera, WebGLRenderer, Timer, Material, Mesh, DirectionalLight, PointLight, SpotLight, Object3D, Light } from "three";
+import { Scene, Camera, WebGLRenderer, Timer, Material, Mesh, Object3D, DirectionalLight, SpotLight, PointLight } from "three";
 import { Sfyri3DEntity } from "./sfyri3d-entity.class";
 import { assertSfyri3DState } from "../../utils/assertions";
 import { Sfyri3DStateEntry } from "./sfyri3d-state.class";
@@ -98,7 +98,6 @@ export default class Sfyri3DInstance<T> {
 
     //NOTE - the setters are handled in the private methods 
     private _objects3D: Map<string, Sfyri3DEntity> = new Map();
-    private _lights: Map<string, Sfyri3DEntity> = new Map();
     //!SECTION - ENTITIES PROPS
 
     // GLOBAL STATE
@@ -214,8 +213,7 @@ export default class Sfyri3DInstance<T> {
             throw new Error(`SFYRI3D - Sfyri3DInstance stopRender\nThis instance is not rendering.`);
         }
 
-        this._objects3D.forEach(o3d => this.removeEntity(o3d.name, "object3D", shouldDisposeMaterials));
-        this._lights.forEach(light => this.removeEntity(light.name, "light"));
+        this._objects3D.forEach(o3d => this.removeEntity(o3d.name, shouldDisposeMaterials));
         this._timer?.disconnect();
 
         this._prePipelineProcesses.clear();
@@ -236,35 +234,22 @@ export default class Sfyri3DInstance<T> {
      * @param sfyri3DEntityType type of the searched entity
      * @returns the entity if found, else undefined.
      */
-    public getEntity(name: string, sfyri3DEntityType: 'light' | 'object3D'): Sfyri3DEntity | undefined {
-        switch (sfyri3DEntityType) {
-            case 'light':
-                return this._lights.get(name);
-            case 'object3D':
-                return this._objects3D.get(name);
-        }
+    public getEntity(name: string): Sfyri3DEntity | undefined {
+        return this._objects3D.get(name);
     }
 
     /**
      * @throws This method can throw error.
-     * @param entity entity to add with an object that either extends Light or Object3D
+     * @param entity entity to add with an object that either extends Object3D
      * @summary this method add a valid Entities and registers the pipeline methods in the instance render pipeline
      */
     public addEntity(entity: Sfyri3DEntity) {
-        //NOTE -    check Light before Object3D as Light actually extends Object3D, 
-        //          reversing the if makes it always fall in object3D if entity is valid.
-        //LIGHTS
-        if (entity.object instanceof Light) {
-            if (this._lights.has(entity.name)) throw new Error(`SFYRI3D - Sfyri3DInstance addEntity\n${entity.name} already exists in the lights entity's map.`);
-            this._lights.set(entity.name, entity);
-        }
-        //OBJECTS 3D
-        else if (entity.object instanceof Object3D) {
+        if (entity.object instanceof Object3D) {
             if (this._objects3D.has(entity.name)) throw new Error(`SFYRI3D - Sfyri3DInstance addEntity\n${entity.name} already exists in the objects3Ds entity's map.`);
             this._objects3D.set(entity.name, entity);
         }
         //ERROR
-        else throw new Error(`SFYRI3D - Sfyri3DInstance addEntity\n${(entity as any).name ?? "ND"} doesn't extends either object3D or light.`);
+        else throw new Error(`SFYRI3D - Sfyri3DInstance addEntity\n${(entity as any).name ?? "ND"} doesn't extends object3D.`);
 
         this.scene.add(entity.object);
 
@@ -277,73 +262,53 @@ export default class Sfyri3DInstance<T> {
 
     /**
      * @param name name of the entity
-     * @param sfyri3DEntityType type used to check which map to use 
      * @param shouldDisposeMaterials if removing an object3D it's checked to dispose the materials
      * @returns if the removed entity existed returns true
      * @summary remove an entity from the scene and unregister the pipeline methods in the instance render pipeline.
      * if it's a light it disposes of eventual shadowmap, if it's an object3D it disposes of the geometry and if asked the materials too.
      */
-    public removeEntity(name: string, sfyri3DEntityType: 'light' | 'object3D', shouldDisposeMaterials: boolean = false): boolean {
-        switch (sfyri3DEntityType) {
-            //REMOVE LIGHT
-            case 'light':
-                this._lights.forEach(light => {
-                    if (light.object instanceof DirectionalLight ||
-                        light.object instanceof SpotLight ||
-                        light.object instanceof PointLight) {
-                        if (light.object.shadow?.map) {
-                            light.object.shadow.map.dispose();
-                        }
-                    }
-                    this.scene.remove(light.object);
+    public removeEntity(name: string, shouldDisposeMaterials: boolean = false): boolean {
+        const object3D = this._objects3D.get(name);
+        if (!object3D) return false;
+        //DISPOSE OF RESOURCE
+        object3D.object.traverse(child => {
+            if ((child as Mesh).isMesh) {
+                const meshChild = (child as Mesh);
 
-                    //REMOVE PIPELINE METHODS
-                    if (light.preRenderingAnimationMethod)
-                        this._preRenderingAnimationMethods.delete(light.preRenderingAnimationMethod);
-                    if (light.preRenderingLogicMethod)
-                        this._preRenderingLogicMethods.delete(light.preRenderingLogicMethod);
-                    //REMOVE SUBSCRIPTIONS
-                    if (light.stateEntrySubscriptions)
-                        this.cleanSubscriptions(light.name, light.stateEntrySubscriptions);
-                });
-                return this._lights.delete(name);
+                //GEOMETRY DISPOSE
+                meshChild.geometry.dispose();
 
-            //REMOVE OBJECT3D
-            case 'object3D':
-                const object3D = this._objects3D.get(name);
-                if (!object3D) return false;
-                //DISPOSE OF RESOURCE
-                object3D.object.traverse(child => {
-                    if ((child as Mesh).isMesh) {
-                        const meshChild = (child as Mesh);
+                //MATERIAL DISPOSE
+                if (shouldDisposeMaterials)
+                    if (meshChild.material instanceof Material)
+                        meshChild.material.dispose();
+                    else
+                        for (let j = 0; j < meshChild.material.length; j++)
+                            meshChild.material[j].dispose();
+            }
+            //DISPOSE OF SHADOW MAP
+            else if (child instanceof DirectionalLight ||
+                child instanceof SpotLight ||
+                child instanceof PointLight) {
+                if (child.shadow?.map) {
+                    child.shadow.map.dispose();
+                }
+            }
+        });
+        //REMOVE FROM SCENE
+        this.scene.remove(object3D.object);
 
-                        //GEOMETRY DISPOSE
-                        meshChild.geometry.dispose();
+        //REMOVE PIPELINE METHODS
+        if (object3D.preRenderingAnimationMethod)
+            this._preRenderingAnimationMethods.delete(object3D.preRenderingAnimationMethod);
+        if (object3D.preRenderingLogicMethod)
+            this._preRenderingLogicMethods.delete(object3D.preRenderingLogicMethod);
+        //REMOVE SUBSCRIPTIONS
+        if (object3D.stateEntrySubscriptions)
+            this.cleanSubscriptions(object3D.name, object3D.stateEntrySubscriptions);
 
-                        //MATERIAL DISPOSE
-                        if (shouldDisposeMaterials)
-                            if (meshChild.material instanceof Material)
-                                meshChild.material.dispose();
-                            else
-                                for (let j = 0; j < meshChild.material.length; j++)
-                                    meshChild.material[j].dispose();
-                    }
-                });
-                //REMOVE FROM SCENE
-                this.scene.remove(object3D.object);
-
-                //REMOVE PIPELINE METHODS
-                if (object3D.preRenderingAnimationMethod)
-                    this._preRenderingAnimationMethods.delete(object3D.preRenderingAnimationMethod);
-                if (object3D.preRenderingLogicMethod)
-                    this._preRenderingLogicMethods.delete(object3D.preRenderingLogicMethod);
-                //REMOVE SUBSCRIPTIONS
-                if (object3D.stateEntrySubscriptions)
-                    this.cleanSubscriptions(object3D.name, object3D.stateEntrySubscriptions);
-
-                //REMOVE FROM INSTANCE MAP
-                return this._objects3D.delete(name);
-        }
+        //REMOVE FROM INSTANCE MAP
+        return this._objects3D.delete(name);
     }
     //!SECTION - SFYRI3D ENTITIES HANDLERS
 
