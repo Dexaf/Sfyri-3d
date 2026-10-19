@@ -1,6 +1,7 @@
 import { Camera, Scene, WebGLRenderer, WebGLRendererParameters } from "three";
 import { WebGPURenderer } from 'three/webgpu';
 import Sfyri3DInstance from "../types/classes/sfyri3d-instance.class";
+import { WebGPURendererParameters } from "three/src/renderers/webgpu/WebGPURenderer.js";
 
 /**
  * @throws This method can throw error.
@@ -61,7 +62,7 @@ export function createWebGLSfyri3DInstance<T>(
 export function createWebGPUSfyri3DInstance<T>(
     canvas: string | HTMLCanvasElement,
     camerasFactoryMethod: (container: HTMLElement) => Camera[],
-    webGPURendererParameters: WebGPURenderer | null = null,
+    webGPURendererParameters: WebGPURendererParameters | null = null,
     initialState: T
 ): Sfyri3DInstance<T> {
 

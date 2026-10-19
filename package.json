@@ -4,7 +4,7 @@
     "type": "git",
     "url": "git+https://github.com/Dexaf/Sfyri-3d.git"
   },
-  "version": "1.4.0",
+  "version": "1.4.4",
   "description": "micro framework to make threejs faster by code",
   "license": "UNLICENSED",
   "author": "Federico Pisa - Sagitauros",
@@ -20,11 +20,14 @@
     "publishPackage": "vite build & npm publish --access=public"
   },
   "dependencies": {
-    "stats.js": "^0.17.0",
+    "stats.js": "^0.17.0"
+  },
+  "peerDependencies": {
     "three": "0.183.2"
   },
   "devDependencies": {
     "@types/three": "0.183.1",
+    "three": "0.183.2",
     "@types/node": "^25.3.3",
     "jsdom": "^28.1.0",
     "ts-node": "^10.9.2",

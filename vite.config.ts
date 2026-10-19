@@ -12,9 +12,12 @@ export default defineConfig({
             entry: 'src/index.ts',
             name: 'Sfyri3D',
             fileName: 'index',
+            formats: ["es"]
         },
         rollupOptions: {
-            external: ['three']
+            external: (id) =>
+                id === "three" ||
+                id.startsWith("three/")
         },
         copyPublicDir: false,
         minify: true
