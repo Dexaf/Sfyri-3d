@@ -3,6 +3,7 @@ import { Sfyri3DEntity } from "./sfyri3d-entity.class";
 import { assertSfyri3DState } from "../../utils/assertions";
 import { Sfyri3DStateEntry } from "./sfyri3d-state.class";
 import Stats from "stats.js";
+import { WebGPURenderer } from "three/webgpu";
 
 /**
  * Entry point of the Sfyri 3D Framework handling system.
@@ -31,8 +32,8 @@ export default class Sfyri3DInstance<T> {
         return this._scene;
     }
 
-    private _renderer: WebGLRenderer;
-    public get renderer(): WebGLRenderer {
+    private _renderer: WebGLRenderer | WebGPURenderer;
+    public get renderer(): WebGLRenderer | WebGPURenderer {
         return this._renderer;
     }
 
@@ -117,7 +118,7 @@ export default class Sfyri3DInstance<T> {
     //!SECTION - SFYRI3D PROPS
 
     //CONSTRUCTOR
-    constructor(scene: Scene, renderer: WebGLRenderer, cameras: Camera[], initState: any) {
+    constructor(scene: Scene, renderer: WebGLRenderer | WebGPURenderer, cameras: Camera[], initState: any) {
         //passed props assign
         this._scene = scene;
         this._renderer = renderer;
@@ -222,7 +223,8 @@ export default class Sfyri3DInstance<T> {
         this._preRenderingLogicMethods.clear();
 
         this._renderer.dispose();
-        this._renderer.forceContextLoss();
+        if (this._renderer instanceof WebGLRenderer)
+            this._renderer.forceContextLoss();
 
         this._hasRenderingBeenStarted = false;
     }

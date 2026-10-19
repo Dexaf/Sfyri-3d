@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 import { PerspectiveCamera } from 'three';
-import { createSfyri3DInstance } from '../../utils/create-sfyri-3d-instance'
+import { createWebGLSfyri3DInstance } from '../../utils/create-sfyri-3d-instance'
 
 describe('CreateSfyri3DInstance', () => {
     let canvas: HTMLCanvasElement;
@@ -17,7 +17,7 @@ describe('CreateSfyri3DInstance', () => {
 
     //SECTION - CORRECT BEHAVIOUR
     it('should create a valid Sfyri3DInstance', () => {
-        const instance = createSfyri3DInstance<null>(
+        const instance = createWebGLSfyri3DInstance<null>(
             canvas,
             (container) => [new PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000)],
             null,
@@ -31,7 +31,7 @@ describe('CreateSfyri3DInstance', () => {
     });
 
     it('should create a valid Sfyri3DInstance by searching the canvas from query selector', () => {
-        const instance = createSfyri3DInstance<null>(
+        const instance = createWebGLSfyri3DInstance<null>(
             "#mock-canvas",
             (container) => [camera!],
             null,
@@ -44,7 +44,7 @@ describe('CreateSfyri3DInstance', () => {
 
     //SECTION - STOP BREAKING BEHAVIOUR
     it('should throw if no final canvas is passed', () => {
-        expect(() => createSfyri3DInstance<null>(
+        expect(() => createWebGLSfyri3DInstance<null>(
             null as unknown as HTMLCanvasElement,
             () => [camera!],
             null,
@@ -53,7 +53,7 @@ describe('CreateSfyri3DInstance', () => {
     });
 
     it('should throw if query selector does not match any element', () => {
-        expect(() => createSfyri3DInstance<null>(
+        expect(() => createWebGLSfyri3DInstance<null>(
             '#non-existent-canvas',
             () => [camera!],
             null,
@@ -62,7 +62,7 @@ describe('CreateSfyri3DInstance', () => {
     });
 
     it('should throw if camera factory returns empty array', () => {
-        expect(() => createSfyri3DInstance<null>(
+        expect(() => createWebGLSfyri3DInstance<null>(
             canvas,
             () => [],
             null,

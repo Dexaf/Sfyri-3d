@@ -1,7 +1,7 @@
-import { BoxGeometry, DirectionalLight, Mesh, MeshBasicMaterial, PerspectiveCamera } from "three";
+import { BoxGeometry, DirectionalLight, Mesh, MeshBasicMaterial, PerspectiveCamera, WebGLRenderer } from "three";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import Sfyri3DInstance from "../../types/classes/sfyri3d-instance.class";
-import { createSfyri3DInstance } from "../../utils/create-sfyri-3d-instance";
+import { createWebGLSfyri3DInstance } from "../../utils/create-sfyri-3d-instance";
 import { Sfyri3DEntity } from "../../types/classes/sfyri3d-entity.class";
 
 describe('Sfyri3DInstance', () => {
@@ -14,7 +14,7 @@ describe('Sfyri3DInstance', () => {
         canvas.height = 600;
         document.body.appendChild(canvas);
 
-        sfyri3DInstance = createSfyri3DInstance(
+        sfyri3DInstance = createWebGLSfyri3DInstance(
             canvas,
             (container) => [new PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000)],
             null,
@@ -312,10 +312,13 @@ describe('Sfyri3DInstance', () => {
         const materialDisposeSpy = vi.spyOn(material, "dispose");
 
         const rendererDisposeSpy = vi.spyOn(sfyri3DInstance!.renderer, "dispose");
-        const contextLossSpy = vi.spyOn(
-            sfyri3DInstance!.renderer,
-            "forceContextLoss"
-        );
+        let contextLossSpy;
+        if (sfyri3DInstance!.renderer instanceof WebGLRenderer) {
+            contextLossSpy = vi.spyOn(
+                sfyri3DInstance!.renderer,
+                "forceContextLoss"
+            );
+        }
 
         const timerDisconnectSpy = vi.spyOn(
             (sfyri3DInstance as any)._timer,
@@ -324,6 +327,8 @@ describe('Sfyri3DInstance', () => {
 
         sfyri3DInstance!.killRender(true);
 
+        if (contextLossSpy)
+            expect(contextLossSpy).toHaveBeenCalled();
         expect(sfyri3DInstance!['_preRenderingAnimationMethods'].size).toBe(0);
         expect(sfyri3DInstance!['_preRenderingLogicMethods'].size).toBe(0);
         expect(sfyri3DInstance!["_objects3D"].has("test-object")).toBe(false);
@@ -335,7 +340,6 @@ describe('Sfyri3DInstance', () => {
         expect(sfyri3DInstance!["_animationFrameId"]).toBeNull();
 
         expect(rendererDisposeSpy).toHaveBeenCalled();
-        expect(contextLossSpy).toHaveBeenCalled();
 
         expect(timerDisconnectSpy).toHaveBeenCalled();
 

@@ -14,7 +14,7 @@
         "noImplicitThis": true,
         "alwaysStrict": true,
         "esModuleInterop": true,                    // Compatibility with require/import
-        "moduleResolution": "node10",               // Node-style module resolution
+        "moduleResolution": "bundler",               // Node-style module resolution
         "resolveJsonModule": true,                  // Allow importing JSON files
         "forceConsistentCasingInFileNames": true,   // Prevent case-sensitive import issues
         "skipLibCheck": true                        // Skip type-checking of dependencies

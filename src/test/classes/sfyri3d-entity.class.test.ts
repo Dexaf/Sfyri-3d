@@ -3,7 +3,7 @@ import Sfyri3DInstance from "../../types/classes/sfyri3d-instance.class";
 import { BoxGeometry, Mesh, MeshBasicMaterial, Object3D, PerspectiveCamera } from "three";
 import { Sfyri3DStateEntry } from "../../types/classes/sfyri3d-state.class";
 import { Sfyri3DEntity } from "../../types/classes/sfyri3d-entity.class";
-import { createSfyri3DInstance } from "../../utils/create-sfyri-3d-instance";
+import { createWebGLSfyri3DInstance } from "../../utils/create-sfyri-3d-instance";
 
 type keys = 'count';
 
@@ -32,7 +32,7 @@ describe('Sfyri3dEntity', () => {
             count: new Sfyri3DStateEntry<number>('count', 0),
         };
 
-        sfyri3DInstance = createSfyri3DInstance(
+        sfyri3DInstance = createWebGLSfyri3DInstance(
             canvas,
             (container) => [new PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000)],
             null,
