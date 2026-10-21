@@ -87,6 +87,10 @@ export default class Sfyri3DInstance<T> {
     public get hasRenderingBeenStarted(): boolean {
         return this._hasRenderingBeenStarted;
     }
+
+    /** when true the rendering is disabled and have to be called manually inside postPipelineProcessesExecution */
+    public isManualRenderingOn = false;
+    public manualRendering?: () => void;
     //!SECTION - PROPS FOR ANIMATION LOOP
 
     //SECTION - ENTITIES PROPS
@@ -374,8 +378,11 @@ export default class Sfyri3DInstance<T> {
             this.preRenderingLogicMethodsExecution(deltaTime);
             this.postPipelineProcessesExecution(deltaTime);
 
-            for (let i = 0; i < this.cameras.length; i++)
-                this.renderer.render(this.scene, this.cameras[i]);
+            if (this.isManualRenderingOn === false)
+                for (let i = 0; i < this.cameras.length; i++)
+                    this.renderer.render(this.scene, this.cameras[i]);
+            else if (this.manualRendering)
+                this.manualRendering();
         }
 
         this._animationFrameId = requestAnimationFrame(this.renderNextStep);
@@ -404,8 +411,11 @@ export default class Sfyri3DInstance<T> {
             this.preRenderingLogicMethodsExecution(deltaTime);
             this.postPipelineProcessesExecution(deltaTime);
 
-            for (let i = 0; i < this.cameras.length; i++)
-                this.renderer.render(this.scene, this.cameras[i]);
+            if (this.isManualRenderingOn === false)
+                for (let i = 0; i < this.cameras.length; i++)
+                    this.renderer.render(this.scene, this.cameras[i]);
+            else if (this.manualRendering)
+                this.manualRendering();
 
             this.stats.end();
             console.info(
